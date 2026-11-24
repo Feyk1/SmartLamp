@@ -164,8 +164,8 @@ Expected: `backend`, `driver`, `firmware` and `web` running, and
 verified end-to-end with `docker compose down` + `docker compose up --build`.
 
 The dashboard creates (or reuses) the instance and keeps a heartbeat every 30 s.
-If the instance goes 5 min without a heartbeat, the backend removes it; with the
-dashboard open, the firmware reconnects on its own.
+If the dashboard sends no heartbeat for **2 min**, the backend deletes the
+instance and its Machine. Device telemetry does not extend that deadline.
 
 Local security: **JWT** sessions (HS256) for the dashboard, an opaque
 `device_token` for the firmware, rate limiting (device/IP/PIN) and configurable

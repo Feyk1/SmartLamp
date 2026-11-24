@@ -28,7 +28,7 @@ Three deployment architectures were evaluated:
 - The orchestrator creates an App (`lamp-<uuid>`) with app-scoped DNS on the organization 6PN network.
 - Inside the App, a Machine is created with `auto_destroy: true`.
 - The Machine contains the supervisor, bootloader, firmware and LED driver.
-- After inactivity (`IDLE_TIMEOUT_S`), the instance agent signals `auto_destroy` and Fly destroys the Machine.
+- When the dashboard sends no heartbeat for `HEARTBEAT_TIMEOUT_S` (120 s), the orchestrator deletes the App and Fly destroys the Machine.
 - The orchestrator cleans its `instance_id → ws` map.
 
 ## Alternatives considered
@@ -93,7 +93,7 @@ Three deployment architectures were evaluated:
 ### Positive
 
 - **Real isolation:** each instance is a separate microVM, with its own kernel and network.
-- **Native ephemerality:** `auto_destroy` + `IDLE_TIMEOUT_S` make the instance destroy itself.
+- **Native ephemerality:** `auto_destroy` plus the orchestrator heartbeat expiry remove idle instances.
 - **Fidelity to a real product:** each instance is a separate physical unit.
 - **Granular observability:** the orchestrator can route commands and telemetry to the correct instance.
 - **Controlled cost:** you only pay for seconds of runtime; with 20 short visits per month, <$1/month.
@@ -134,7 +134,7 @@ async def create_instance(instance_id: str, device_token: str):
             "env": {
                 "DEVICE_TOKEN": device_token,
                 "ORCH_WS_URL": "ws://lamp-demo-orchestrator.internal:8081/ws/device",
-                "IDLE_TIMEOUT_S": "300",
+                "HEARTBEAT_TIMEOUT_S": "120",
             },
             "guest": {"cpu_kind": "shared", "cpus": 1, "memory_mb": 256},
         },
@@ -153,23 +153,11 @@ async def destroy_instance(instance_id: str):
 
 A periodic job (cron in the orchestrator or a GitHub Action) lists the `lamp-*` Apps and destroys those with no entry in the orchestrator map (orphaned by an orchestrator crash).
 
-### Inactivity agent
+### Heartbeat expiry
 
-```bash
-#!/bin/bash
-# agent-idle.sh
-IDLE_TIMEOUT=${IDLE_TIMEOUT_S:-300}
-LAST_ACTIVITY=$(date +%s)
-while true; do
-  sleep 10
-  NOW=$(date +%s)
-  [ -f /tmp/last_activity ] && LAST_ACTIVITY=$(cat /tmp/last_activity)
-  if [ $((NOW - LAST_ACTIVITY)) -gt $IDLE_TIMEOUT ]; then
-    kill -TERM 1  # signal to PID 1 (supervisor) so it exits cleanly
-    exit 0
-  fi
-done
-```
+The orchestrator's cleanup loop expires instances whose dashboard heartbeat is
+older than `HEARTBEAT_TIMEOUT_S` (120 s), then deletes the App; Fly cascades the
+Machine. Firmware telemetry does not extend the deadline.
 
 ## References
 

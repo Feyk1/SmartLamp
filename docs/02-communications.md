@@ -500,7 +500,7 @@ The dashboard applies each `state` message directly; there is no client-side int
 ### 6.4 Heartbeat and expiration
 
 - The dashboard sends `{"type":"heartbeat"}` every **30 s** over WS. `POST /instances/{id}/heartbeat` exists for REST clients but the dashboard does not call it.
-- If there is no heartbeat for **5 min**, the backend cleans up its map. The instance destroys itself through its own `agent-idle`.
+- If the dashboard sends no heartbeat for **2 min**, the backend deletes the instance and its Fly App/Machine. Device telemetry does not extend the deadline.
 - The user can reconnect within the TTL using `sessionStorage` (`instance_id`, `session_token`).
 
 ## 7. Criterion: command or telemetry?

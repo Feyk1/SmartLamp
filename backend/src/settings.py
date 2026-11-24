@@ -46,7 +46,6 @@ PUBLIC_HTTP_BASE = os.getenv("PUBLIC_HTTP_BASE", "http://localhost:8080")
 # public HTTPS/WSS URL. Defaults keep local mode working with one base URL.
 INTERNAL_HTTP_BASE = os.getenv("INTERNAL_HTTP_BASE", PUBLIC_HTTP_BASE)
 INTERNAL_WS_BASE = os.getenv("INTERNAL_WS_BASE", PUBLIC_WS_BASE)
-IDLE_TIMEOUT_S = int(os.getenv("IDLE_TIMEOUT_S", "300"))
 OTA_AES_KEY = os.getenv("OTA_AES_KEY", "")
 
 # Fly Machines API.

@@ -226,7 +226,7 @@ Goal: generate cost or exhaust the Fly.io trial
     ├── 2.1 Fake heartbeats over WS
     │   └── Mitigated: the heartbeat requires a valid session_token
     └── 2.2 Instances that do not destroy themselves
-        └── Mitigated: agent-idle + auto_destroy + TTL in the orchestrator
+        └── Mitigated: heartbeat expiry + auto_destroy + TTL in the orchestrator
 ```
 
 **Conclusion:** the residual risk is **medium**. Turnstile or an invisible CAPTCHA would reduce automated abuse. It is documented as a next step.
@@ -280,7 +280,7 @@ This is preferable to simulating RDP artificially or claiming that a Linux proce
 | **`role: sim` for `/sim/*`** | E in the orchestrator | ✅ | — |
 | **Rate limiting per IP** | D in the orchestrator, AT-3 | ✅ | — |
 | **Global instance limit** | D in the orchestrator, AT-3 | ✅ | — |
-| **`auto_destroy` + `agent-idle`** | A1, AT-3 | ✅ | — |
+| **`auto_destroy` + heartbeat expiry** | A1, AT-3 | ✅ | — |
 | **Private 6PN ports** | S in Modbus, AT-2 | ✅ | The 6PN is organization-wide, not per-App |
 | **Firecracker microVM** | E in the firmware | ✅ | — |
 | **Constant-time comparison** | Timing attack on `device_token` | ✅ | — |

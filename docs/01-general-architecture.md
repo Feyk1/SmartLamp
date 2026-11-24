@@ -62,7 +62,7 @@ Created on demand with:
 - Name: `lamp-<uuid>`.
 - Its own App-scoped DNS name on the organization 6PN (`lamp-<uuid>.internal`).
 - One Machine with `auto_destroy: true`.
-- `IDLE_TIMEOUT_S=300` for self-destruction.
+- `HEARTBEAT_TIMEOUT_S=120`: no dashboard heartbeat for 2 min deletes the App/Machine.
 
 Container contents:
 
@@ -76,7 +76,7 @@ flowchart TD
   E <-->|Modbus TCP| F[LED driver<br/>child process]
   E -.->|mmap| G[(flash.bin)]
   F -.->|mmap| H[(driver_state.bin)]
-  I[agent-idle.sh] -.->|auto_destroy signal| J[Fly runtime]
+  I[orchestrator cleanup] -.->|deletes App| J[Fly runtime]
 ```
 
 **Isolation:**
@@ -406,10 +406,9 @@ sequenceDiagram
   participant M as Fly
 
   U->>P: Closes the tab
-  Note over P,O: No heartbeat for 5 min
-  Note over O: Does not destroy the instance<br/>(the instance destroys itself)
-  Note over I: agent-idle detects IDLE_TIMEOUT_S
-  I->>M: auto_destroy signal
+  Note over P,O: No heartbeat for 2 min
+  Note over O: Cleanup loop expires the instance
+  O->>M: DELETE /v1/apps/lamp-<id>
   M->>I: Destroys Machine
   Note over O: Clears the instance_id → ws map
 ```

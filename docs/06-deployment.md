@@ -115,7 +115,7 @@ sequenceDiagram
     "env": {
       "DEVICE_TOKEN": "<token>",
       "ORCH_WS_URL": "ws://lamp-demo-orchestrator.internal:8081/ws/device",
-      "IDLE_TIMEOUT_S": "300"
+      "HEARTBEAT_TIMEOUT_S": "120"
     },
     "guest": { "cpu_kind": "shared", "cpus": 1, "memory_mb": 256 }
   }
@@ -134,7 +134,7 @@ A single container with:
 | **Bootloader** | Validates the `.ota`, manages A/B slots in `flash.bin` (mmap), `execve` to the app |
 | **POSIX firmware** | FreeRTOS port + tasks + Modbus client + WS client + REST client |
 | **Simulated LED driver** | Modbus TCP server + internal REST API for fault injection |
-| **Idle agent** | Detects the absence of commands/telemetry and signals `auto_destroy` after N minutes |
+| **Heartbeat expiry** | The orchestrator deletes the App/Machine after 2 min without dashboard heartbeats |
 
 **Image size:** ≈130 MB with `debian:bookworm-slim` (the binaries add up to <1 MB; the rest is the base). Good enough for fast boots; going below 100 MB would require distroless/alpine.
 
@@ -148,31 +148,13 @@ with `auto_destroy`, waits for its private IP and uses it for Modbus and the
 supervisor channel. Cleanup of expired and orphaned instances runs in a
 background task. The operational guide is in [`deployment.md`](deployment.md).
 
-### 4.4 Idle agent
+### 4.4 Instance expiry
 
-The agent is critical: **the instance does not depend on the orchestrator to shut down**. If the orchestrator is suspended, the instance keeps working and destroys itself when appropriate. This removes a single point of failure.
-
-```bash
-#!/bin/bash
-# agent-idle.sh
-IDLE_TIMEOUT=${IDLE_TIMEOUT_S:-300}
-LAST_ACTIVITY=$(date +%s)
-
-while true; do
-  sleep 10
-  NOW=$(date +%s)
-  # The firmware writes a timestamp to /tmp/last_activity on every command/telemetry
-  if [ -f /tmp/last_activity ]; then
-    LAST_ACTIVITY=$(cat /tmp/last_activity)
-  fi
-  if [ $((NOW - LAST_ACTIVITY)) -gt $IDLE_TIMEOUT ]; then
-    echo "Idle timeout reached, signaling auto_destroy"
-    # Fly destroys the Machine when it receives SIGTERM and does not restart it
-    kill -TERM 1
-    exit 0
-  fi
-done
-```
+The orchestrator owns the lifetime. Every 60 s it checks `last_heartbeat`, which
+is updated only by the dashboard WS/REST heartbeat. If there has been no
+heartbeat for `HEARTBEAT_TIMEOUT_S` (120 s), it deletes the App and Fly
+cascades the Machine. Firmware telemetry does **not** extend this deadline.
+`auto_destroy: true` remains a safety net if the container exits on its own.
 
 ## 5. Static plane: GitHub Pages
 
@@ -290,7 +272,7 @@ If the Machines API adds too much complexity for the demo scope:
 
 - [x] `curl https://lamp-demo-orchestrator.fly.dev/health` responds 200
 - [x] `POST /instances` creates a real Machine (`fly apps list` confirms it)
-- [x] The instance destroys itself after `IDLE_TIMEOUT_S`
+- [x] The orchestrator deletes the instance after 2 min without dashboard heartbeats
 - [x] The dashboard on Pages connects to the orchestrator over WSS
 - [x] The `.ota` artifacts are in `/data/ota` and OTA succeeds
 - [x] The Fly.io trial has not expired (or the project has moved to a paid plan)
@@ -319,9 +301,9 @@ If the Machines API adds too much complexity for the demo scope:
 - `.github/workflows/deploy-instance-image.yml`
 - `docs/deployment.md` — step-by-step guide with cost notes.
 
-The orphan sweep and expiration replace `agent-idle.sh`: the orchestrator
-destroys the App when the session closes or when the heartbeat expires, and
-`auto_destroy` covers stopping the Machine.
+The orchestrator's expiration loop is the shutdown mechanism: it destroys the
+App when the session closes or when the dashboard heartbeat expires, and
+`auto_destroy` covers stopping the Machine if the container exits.
 
 ## 12. References
 
