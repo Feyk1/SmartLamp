@@ -7,6 +7,10 @@ Public demo of a **smart lamp** with **FreeRTOS firmware simulated on POSIX**, *
 > **The essentials:** `cp .env.example .env && docker compose up --build` and open
 > `http://localhost:3000`. Sim panel: `http://localhost:3000/sim.html?pin=2025`.
 > Dashboard in English by default; `?lang=es` switches it to Spanish.
+>
+> **📚 Read the documentation online:** <https://feyk1.github.io/SmartLamp/docs/>
+> The MkDocs site is the recommended way to read the user manual, architecture,
+> OTA, security, deployment and ADRs.
 
 **▶ Live demo:** <https://feyk1.github.io/SmartLamp/> · **[📚 Docs](https://feyk1.github.io/SmartLamp/docs/)** · **[📐 Architecture](docs/01-general-architecture.md)** · **[🧭 Decisions (ADR)](docs/adr/)** · **[🧪 Tests](#tests-and-quality)** · **[🚀 Deployment](docs/deployment.md)**
 
@@ -389,6 +393,8 @@ See [`docs/deployment.md`](docs/deployment.md) for the step-by-step guide and
 Full details and rationale in [`docs/threat-model.md`](docs/threat-model.md) §8.
 
 ## Documentation
+
+**Read it online:** <https://feyk1.github.io/SmartLamp/docs/>
 
 The Markdown documentation builds with **MkDocs Material** and is published
 under `/docs/` on GitHub Pages, alongside the dashboard.

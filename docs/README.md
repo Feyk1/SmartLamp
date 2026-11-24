@@ -1,5 +1,8 @@
 # Documentation — Smart Lamp Demo
 
+**Read this documentation as a site:**
+<https://feyk1.github.io/SmartLamp/docs/>
+
 This directory contains the project's public documentation. The root README is
 the recommended entry point; here is the complete map for going deeper. The
 same content is published as a MkDocs site under `/docs/` on GitHub Pages.
