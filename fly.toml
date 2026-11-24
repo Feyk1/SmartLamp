@@ -27,11 +27,10 @@ primary_region = "iad"
   cpus = 1
   memory_mb = 256
 
-# Optional persistence: create the volume before deploying and uncomment.
-# fly volumes create lamp_data --size 1 --region iad
-# [[mounts]]
-#   source = "lamp_data"
-#   destination = "/data"
+# Persistence for schedules, provisioning and OTA artifacts.
+[[mounts]]
+  source = "lamp_data"
+  destination = "/data"
 
 [env]
   INSTANCE_MODE = "fly"
