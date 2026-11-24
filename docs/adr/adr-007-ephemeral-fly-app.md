@@ -133,7 +133,7 @@ async def create_instance(instance_id: str, device_token: str):
             "auto_destroy": True,
             "env": {
                 "DEVICE_TOKEN": device_token,
-                "ORCH_WS_URL": "wss://lamp-demo-orchestrator.fly.dev/ws/device",
+                "ORCH_WS_URL": "ws://lamp-demo-orchestrator.internal:8080/ws/device",
                 "IDLE_TIMEOUT_S": "300",
             },
             "guest": {"cpu_kind": "shared", "cpus": 1, "memory_mb": 256},

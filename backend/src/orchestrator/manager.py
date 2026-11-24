@@ -45,8 +45,8 @@ def machine_config(instance: Instance) -> dict[str, Any]:
     env = {
         "DEVICE_TOKEN": instance.device_token,
         "DEVICE_ID": f"lamp-{instance.id.removeprefix('inst-')}",
-        "ORCH_WS_URL": f"{settings.PUBLIC_WS_BASE}/ws/device",
-        "ORCH_HTTP_URL": settings.PUBLIC_HTTP_BASE,
+        "ORCH_WS_URL": f"{settings.INTERNAL_WS_BASE}/ws/device",
+        "ORCH_HTTP_URL": settings.INTERNAL_HTTP_BASE,
         "IDLE_TIMEOUT_S": str(settings.IDLE_TIMEOUT_S),
         "SUPERVISOR_PORT": "5022",
         "MODBUS_PORT": "5020",

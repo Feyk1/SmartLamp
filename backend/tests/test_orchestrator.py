@@ -84,6 +84,8 @@ def fly(monkeypatch) -> FakeFly:
     monkeypatch.setattr(settings, "INSTANCE_MODE", "fly")
     monkeypatch.setattr(settings, "PUBLIC_HTTP_BASE", "https://orch.example")
     monkeypatch.setattr(settings, "PUBLIC_WS_BASE", "wss://orch.example")
+    monkeypatch.setattr(settings, "INTERNAL_HTTP_BASE", "http://orch.internal:8080")
+    monkeypatch.setattr(settings, "INTERNAL_WS_BASE", "ws://orch.internal:8080")
     monkeypatch.setattr(manager, "get_machines_api", factory)
     return fake
 
@@ -114,10 +116,11 @@ def test_provision_creates_app_and_machine(fly: FakeFly):
     assert machine_body["auto_destroy"] is True
     assert machine_body["image"].startswith("registry.fly.io/")
     assert machine_body["env"]["DEVICE_TOKEN"] == instance["device_token"]
-    assert machine_body["env"]["ORCH_WS_URL"] == "wss://orch.example/ws/device"
-    assert machine_body["env"]["ORCH_HTTP_URL"] == "https://orch.example"
+    assert machine_body["env"]["ORCH_WS_URL"] == "ws://orch.internal:8080/ws/device"
+    assert machine_body["env"]["ORCH_HTTP_URL"] == "http://orch.internal:8080"
     assert machine_body["guest"]["memory_mb"] == 256
-    assert "/ws/dashboard?instance=" in data["ws_dashboard_url"]
+    assert data["ws_dashboard_url"].startswith("wss://orch.example/ws/dashboard")
+    assert f"instance={data['id']}" in data["ws_dashboard_url"]
 
 
 def test_provision_failure_returns_503_and_rolls_back(fly: FakeFly):

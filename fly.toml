@@ -36,6 +36,10 @@ primary_region = "iad"
   INSTANCE_MODE = "fly"
   PUBLIC_HTTP_BASE = "https://lamp-demo-orchestrator.fly.dev"
   PUBLIC_WS_BASE = "wss://lamp-demo-orchestrator.fly.dev"
+  # Ephemeral Machines reach the orchestrator over the private 6PN network.
+  # The firmware has no TLS client; the public edge is only for browsers.
+  INTERNAL_HTTP_BASE = "http://lamp-demo-orchestrator.internal:8080"
+  INTERNAL_WS_BASE = "ws://lamp-demo-orchestrator.internal:8080"
   FLY_REGION = "iad"
   FLY_INSTANCE_BASE_APP = "lamp-instance-base"
   OTA_DIR = "/data/ota"
