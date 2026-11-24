@@ -1,10 +1,10 @@
-# Orquestador en Fly.io
+# Orchestrator on Fly.io
 
-La configuración vive en `/fly.toml` (raíz del repositorio) porque flyctl usa
-el directorio del `fly.toml` como contexto de build y la imagen necesita
-`backend/` y `infra/Dockerfile.orchestrator`.
+The configuration lives in `/fly.toml` at the repository root because flyctl
+uses the directory containing `fly.toml` as the build context, and the image
+needs `backend/` and `infra/Dockerfile.orchestrator`.
 
-## Primer despliegue
+## First deployment
 
 ```bash
 fly auth login
@@ -18,15 +18,15 @@ fly secrets set \
 fly deploy
 ```
 
-`FLY_ORG_TOKEN` debe ser un token de organización con permiso para crear y
-borrar Apps/Machines (lo usa el orquestador para cada visita). No lo confundas
-con el `FLY_API_TOKEN` de CI, que solo despliega el orquestador.
+`FLY_ORG_TOKEN` must be an organization token allowed to create and delete
+Apps/Machines; the orchestrator uses it for every visit. It is not the
+`FLY_API_TOKEN` used by CI, which only deploys the orchestrator.
 
-## Imagen de instancia
+## Instance image
 
-`infra/instance/Dockerfile` construye la imagen que ejecuta cada visita. Se
-publica en el registro de Fly con el workflow `deploy-instance-image.yml` o a
-mano:
+`infra/instance/Dockerfile` builds the image that runs each visit. It is
+published to the Fly registry by the `deploy-instance-image.yml` workflow or
+manually:
 
 ```bash
 fly auth docker
@@ -34,10 +34,10 @@ docker build -f infra/instance/Dockerfile -t registry.fly.io/lamp-instance-base:
 docker push registry.fly.io/lamp-instance-base:latest
 ```
 
-## Limpieza
+## Cleanup
 
-El orquestador expira instancias cada minuto y barre Apps huérfanas cada 10
-minutos. Para revisar a mano:
+The orchestrator expires instances every minute and sweeps orphan Apps every
+10 minutes. To inspect them manually:
 
 ```bash
 fly apps list | grep lamp-inst-

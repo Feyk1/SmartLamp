@@ -17,21 +17,21 @@ env:
 
 jobs:
   image:
-    name: Imagen de instancia
+    name: Instance image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - name: Autenticar el registro de Fly
+      - name: Authenticate to the Fly registry
         run: flyctl auth docker
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      - name: Construir y publicar
+      - name: Build and push
         run: |
           docker build -f infra/instance/Dockerfile \
             -t "$IMAGE:${{ github.sha }}" \
             -t "$IMAGE:latest" .
           docker push "$IMAGE:${{ github.sha }}"
           docker push "$IMAGE:latest"
-      - name: Resumen
+      - name: Summary
         run: echo "Publicada $IMAGE:latest (${{ github.sha }})" >> "$GITHUB_STEP_SUMMARY"

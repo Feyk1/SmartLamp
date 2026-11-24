@@ -20,7 +20,7 @@ def _receive_type(websocket, message_type: str) -> dict:
         message = websocket.receive_json()
         if message.get("type") == message_type:
             return message
-    raise AssertionError(f"no se recibio un mensaje de tipo {message_type}")
+    raise AssertionError(f"no message of type {message_type} received")
 
 
 def test_device_state_broadcast_to_dashboard():
@@ -43,7 +43,7 @@ def test_device_state_broadcast_to_dashboard():
                         "power": True,
                         "color": {"h": 32, "s": 850, "v": 600},
                     },
-                    "ts": "2025-01-01T00:00:00Z",
+                    "ts": "2026-11-18T00:00:00Z",
                 }
             )
             state = _receive_type(dashboard, "state")

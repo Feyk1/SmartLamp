@@ -1,8 +1,8 @@
-# mbedTLS 3.6.8 (LTS) — subconjunto mínimo vendorizado (Apache-2.0).
+# mbedTLS 3.6.8 (LTS) — minimal vendored subset (Apache-2.0).
 #
-# Solo se compilan los módulos necesarios para AES-256-GCM y SHA-256 del OTA.
-# La configuración vive en config/smartlamp_config.h y se propaga a los
-# consumidores con MBEDTLS_CONFIG_FILE.
+# Only the modules required for OTA AES-256-GCM and SHA-256 are compiled.
+# The configuration lives in config/smartlamp_config.h and is propagated to
+# consumers through MBEDTLS_CONFIG_FILE.
 
 add_library(mbedtls STATIC
     "${CMAKE_CURRENT_SOURCE_DIR}/library/aes.c"

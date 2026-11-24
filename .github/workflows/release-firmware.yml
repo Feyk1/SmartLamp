@@ -15,11 +15,11 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar toolchain
+      - name: Install toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build gcc
-      - name: Parsear la versión del tag
+      - name: Parse tag version
         id: version
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -32,14 +32,14 @@ jobs:
           rest=${version#*.}
           echo "minor=${rest%%.*}" >> "$GITHUB_OUTPUT"
           echo "patch=${rest#*.}" >> "$GITHUB_OUTPUT"
-      - name: Compilar la release
+      - name: Build release
         run: |
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DFW_VERSION_MAJOR=${{ steps.version.outputs.major }} \
             -DFW_VERSION_MINOR=${{ steps.version.outputs.minor }} \
             -DFW_VERSION_PATCH=${{ steps.version.outputs.patch }}
           cmake --build build
-      - name: Preparar artefactos
+      - name: Prepare artifacts
         run: |
           mkdir -p dist
           cp build/bin/firmware dist/firmware.bin
@@ -53,7 +53,7 @@ jobs:
           path: dist/
 
   package:
-    name: Empaquetar y firmar
+    name: Package and sign
     needs: build
     runs-on: ubuntu-latest
     environment: release
@@ -81,7 +81,7 @@ jobs:
           path: dist/*.ota
 
   verify:
-    name: Verificar (independiente)
+    name: Verify (independent)
     needs: [build, package]
     runs-on: ubuntu-latest
     environment: release
@@ -94,9 +94,9 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install cryptography pynacl
-      - name: Autotest de las herramientas
+      - name: Tool self-test
         run: python tools/test_ota.py
-      - name: verify_ota.py (firma + AES-GCM + SHA-256)
+      - name: verify_ota.py (signature + AES-GCM + SHA-256)
         env:
           OTA_AES_KEY: ${{ secrets.OTA_AES_KEY }}
         run: |
@@ -109,7 +109,7 @@ jobs:
           path: firmware-*.ota
 
   release:
-    name: Publicar Release
+    name: Publish Release
     needs: [build, verify]
     runs-on: ubuntu-latest
     permissions:
@@ -130,7 +130,7 @@ jobs:
           generate_release_notes: true
 
   pages:
-    name: Construir dashboard y documentación
+    name: Build dashboard and documentation
     needs: [build, verify]
     runs-on: ubuntu-latest
     steps:
@@ -139,7 +139,7 @@ jobs:
         with:
           name: release-ota
           path: dist
-      - name: Construir el sitio
+      - name: Build site
         env:
           PUBLIC_ORCHESTRATOR_URL: ${{ vars.PUBLIC_ORCHESTRATOR_URL }}
           OTA_FILE: dist/firmware-${{ needs.build.outputs.version }}.ota
@@ -150,9 +150,9 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements-docs.txt
-      - name: Instalar dependencias de documentación
+      - name: Install documentation dependencies
         run: pip install -r requirements-docs.txt
-      - name: Construir la documentación
+      - name: Build documentation
         env:
           DOCS_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/docs/
         run: mkdocs build --strict --site-dir _site/docs
@@ -161,7 +161,7 @@ jobs:
           path: _site
 
   pages-deploy:
-    name: Publicar en Pages
+    name: Publish to Pages
     needs: [pages]
     runs-on: ubuntu-latest
     permissions:

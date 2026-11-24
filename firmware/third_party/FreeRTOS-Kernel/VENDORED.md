@@ -1,19 +1,19 @@
 # FreeRTOS Kernel — vendored
 
 - **Upstream:** https://github.com/FreeRTOS/FreeRTOS-Kernel
-- **Versión:** V10.5.1 (fijada en ADR-001)
-- **Fecha de vendorización:** 2026-11-18
-- **Licencia:** MIT (ver [`LICENSE.md`](LICENSE.md))
+- **Version:** V10.5.1 (pinned in ADR-001)
+- **Vendored on:** 2026-11-18
+- **License:** MIT (see [`LICENSE.md`](LICENSE.md))
 
-## Subconjunto incluido
+## Included subset
 
-- Núcleo: `tasks.c`, `list.c`, `queue.c`, `timers.c`, `event_groups.c`, `stream_buffer.c`.
-- Cabeceras: `include/`.
-- Port POSIX: `portable/ThirdParty/GCC/Posix/` (`port.c`, `portmacro.h`, `utils/wait_for_event.{c,h}`).
-- Gestor de memoria: `portable/MemMang/heap_4.c`.
+- Core: `tasks.c`, `list.c`, `queue.c`, `timers.c`, `event_groups.c`, `stream_buffer.c`.
+- Headers: `include/`.
+- POSIX port: `portable/ThirdParty/GCC/Posix/` (`port.c`, `portmacro.h`, `utils/wait_for_event.{c,h}`).
+- Memory manager: `portable/MemMang/heap_4.c`.
 
-## Por qué
+## Why
 
-ADR-001 fija FreeRTOS v10.5.1 como kernel del firmware. Se vendoriza para
-que el build sea reproducible y funcione sin red, en lugar de descargarlo
-en tiempo de configuración (`FetchContent`).
+ADR-001 pins FreeRTOS v10.5.1 as the firmware kernel. It is vendored so the
+build is reproducible and works without network access, instead of downloading
+it at configure time (`FetchContent`).

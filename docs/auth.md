@@ -534,7 +534,7 @@ ws_connect(url);
 
 **Bad:**
 ```json
-{ "error": { "code": "TOKEN_EXPIRED_AT_2025_01_15_11_30_00" } }
+{ "error": { "code": "TOKEN_EXPIRED_AT_2026_11_18_11_30_00" } }
 ```
 
 **Good:**

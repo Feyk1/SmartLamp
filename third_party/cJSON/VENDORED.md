@@ -1,13 +1,13 @@
 # cJSON — vendored
 
 - **Upstream:** https://github.com/DaveGamble/cJSON
-- **Versión:** v1.7.18
-- **Fecha de vendorización:** 2026-11-18
-- **Licencia:** MIT (ver [`LICENSE`](LICENSE))
+- **Version:** v1.7.18
+- **Vendored on:** 2026-11-18
+- **License:** MIT (see [`LICENSE`](LICENSE))
 
-## Subconjunto incluido
+## Included subset
 
 - `cJSON.c`, `cJSON.h`.
 
-Se usa en el cliente WebSocket del firmware para el sobre JSON
-(`state`, `command`, `ack`/`nack`). Es portable a POSIX y a MCU.
+Used by the firmware WebSocket client for the JSON envelope
+(`state`, `command`, `ack`/`nack`). It is portable to POSIX and to an MCU.

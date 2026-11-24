@@ -1,33 +1,33 @@
 # libsodium — vendored
 
 - **Upstream:** https://github.com/jedisct1/libsodium
-- **Versión:** 1.0.22 (tag `1.0.22-RELEASE`)
-- **Fecha de vendorización:** 2026-11-18
-- **Licencia:** **ISC** (ver [`LICENSE`](LICENSE))
+- **Version:** 1.0.22 (tag `1.0.22-RELEASE`)
+- **Vendored on:** 2026-11-18
+- **License:** **ISC** (see [`LICENSE`](LICENSE))
 
-## Subconjunto incluido
+## Included subset
 
-- `src/libsodium/` completo (fuentes y cabeceras públicas).
+- Full `src/libsodium/` tree (sources and public headers).
 - `LICENSE`, `AUTHORS`, `README.markdown`.
-- Se eliminan el sistema de build (autotools: `configure`, `Makefile.*`,
-  `m4/`, `build-aux/`), los tests y la documentación.
+- The build system (autotools: `configure`, `Makefile.*`, `m4/`, `build-aux/`),
+  tests and documentation are removed.
 
 ## Build
 
-`third_party/libsodium/CMakeLists.txt` compila los 141 `.c` con CMake
-(no se ejecuta autotools) y genera `sodium/version.h` desde
-`sodium/version.h.in`. Target estático: **`sodium`**.
+`third_party/libsodium/CMakeLists.txt` compiles the 141 `.c` files with CMake
+(autotools is not run) and generates `sodium/version.h` from
+`sodium/version.h.in`. Static target: **`sodium`**.
 
-Uso previsto: verificación de firmas **Ed25519** del `.ota` (bloque 11) y
-generación de claves de prueba. Enlace estático; el proyecto sigue siendo MIT
-y libsodium conserva su licencia ISC.
+Intended use: **Ed25519** signature verification for `.ota` files and test key
+generation. Static linking; the project remains MIT and libsodium keeps its ISC
+license.
 
-## Actualizar
+## Updating
 
-1. Descargar el tarball de la release (`libsodium-X.Y.Z.tar.gz`) y sustituir
-   `src/libsodium/`, `LICENSE`, `AUTHORS` y `README.markdown`.
-2. Ajustar `VERSION` y `SODIUM_LIBRARY_VERSION_MAJOR/MINOR` en el
-   `CMakeLists.txt` con los valores de `configure.ac`.
-3. Si la release añade un header generado nuevo, replicarlo en el
-   `CMakeLists.txt` (con `configure_file`).
-4. Compilar y ejecutar `test_crypto`.
+1. Download the release tarball (`libsodium-X.Y.Z.tar.gz`) and replace
+   `src/libsodium/`, `LICENSE`, `AUTHORS` and `README.markdown`.
+2. Update `VERSION` and `SODIUM_LIBRARY_VERSION_MAJOR/MINOR` in
+   `CMakeLists.txt` with the values from `configure.ac`.
+3. If the release adds a new generated header, replicate it in
+   `CMakeLists.txt` (with `configure_file`).
+4. Build and run `test_crypto`.

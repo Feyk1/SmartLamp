@@ -29,7 +29,7 @@ def _receive_until(websocket, predicate, attempts: int = 10) -> dict:
         message = websocket.receive_json()
         if predicate(message):
             return message
-    raise AssertionError("no llego el mensaje esperado")
+    raise AssertionError("expected message was not received")
 
 
 def test_health_requires_device_token():
@@ -71,7 +71,7 @@ def test_health_is_stored_and_exposed():
         f"/api/v1/telemetry/health?token={TOKEN}",
         json={
             "device_id": "lamp-8f2a",
-            "ts": "2025-01-01T00:00:00Z",
+            "ts": "2026-11-18T00:00:00Z",
             "uptime_s": 42,
             "fw_version": "1.0.3",
             "slot": "A",
@@ -89,7 +89,7 @@ def test_health_is_stored_and_exposed():
     ).json()
     assert info["health"]["uptime_s"] == 42
     assert info["health"]["mem"]["free_heap"] == 1000
-    assert info["health_ts"] == "2025-01-01T00:00:00Z"
+    assert info["health_ts"] == "2026-11-18T00:00:00Z"
 
 
 def test_state_is_broadcast_to_dashboard():
@@ -104,7 +104,7 @@ def test_state_is_broadcast_to_dashboard():
         response = client.post(
             f"/api/v1/telemetry/state?token={TOKEN}",
             json={
-                "ts": "2025-01-01T00:00:01Z",
+                "ts": "2026-11-18T00:00:01Z",
                 "state": {"power": True, "brightness": 500},
             },
         )
@@ -112,7 +112,7 @@ def test_state_is_broadcast_to_dashboard():
 
         message = _receive_until(dashboard, lambda m: m["type"] == "state")
         assert message["payload"]["power"] is True
-        assert message["ts"] == "2025-01-01T00:00:01Z"
+        assert message["ts"] == "2026-11-18T00:00:01Z"
 
 
 def test_events_are_stored_and_replayed_on_subscribe():
@@ -123,12 +123,12 @@ def test_events_are_stored_and_replayed_on_subscribe():
         json={
             "events": [
                 {
-                    "ts": "2025-01-01T00:00:02Z",
+                    "ts": "2026-11-18T00:00:02Z",
                     "type": "boot",
                     "detail": {"slot": "A", "cause": "power_on"},
                 },
                 {
-                    "ts": "2025-01-01T00:00:03Z",
+                    "ts": "2026-11-18T00:00:03Z",
                     "type": "fault",
                     "detail": {"code": 2},
                 },

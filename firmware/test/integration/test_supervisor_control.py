@@ -39,7 +39,7 @@ def send(port: int, command: str, token: str | None = TOKEN) -> dict:
                 break
             data += chunk
     if not data:
-        raise AssertionError(f"sin respuesta a {command}")
+        raise AssertionError(f"no response to {command}")
     return json.loads(data.split(b"\n")[0])
 
 

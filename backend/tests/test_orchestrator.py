@@ -177,7 +177,7 @@ def test_local_mode_does_not_call_fly(monkeypatch):
     monkeypatch.setattr(settings, "INSTANCE_MODE", "local")
 
     def boom() -> MachinesApi:
-        raise AssertionError("no debe llamarse a Fly en modo local")
+        raise AssertionError("Fly must not be called in local mode")
 
     monkeypatch.setattr(manager, "get_machines_api", boom)
 

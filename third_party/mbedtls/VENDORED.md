@@ -1,26 +1,26 @@
-# mbedTLS — vendored (subconjunto)
+# mbedTLS — vendored (subset)
 
 - **Upstream:** https://github.com/Mbed-TLS/mbedtls
-- **Versión:** 3.6.8 (LTS)
-- **Fecha de vendorización:** 2026-11-18
-- **Licencia:** **Apache-2.0** (ver [`LICENSE`](LICENSE))
+- **Version:** 3.6.8 (LTS)
+- **Vendored on:** 2026-11-18
+- **License:** **Apache-2.0** (see [`LICENSE`](LICENSE))
 
-## Subconjunto incluido
+## Included subset
 
-- `include/mbedtls/` (cabeceras públicas de la release).
-- `library/` con los módulos necesarios:
+- `include/mbedtls/` (public headers from the release).
+- `library/` with the required modules:
   - `aes.c`, `aesni.c`, `aesce.c`, `block_cipher.c`
   - `gcm.c`
   - `sha256.c`
   - `platform.c`, `platform_util.c`, `constant_time.c`
-  - cabeceras internas: `alignment.h`, `block_cipher_internal.h`,
+  - internal headers: `alignment.h`, `block_cipher_internal.h`,
     `common.h`, `constant_time_impl.h`, `constant_time_internal.h`, `ctr.h`.
-- `LICENSE` y `ChangeLog`.
-- Se excluyen TLS, X.509, bignum, PSA, tests, programas y documentación.
+- `LICENSE` and `ChangeLog`.
+- TLS, X.509, bignum, PSA, tests, programs and documentation are excluded.
 
-## Configuración
+## Configuration
 
-`config/smartlamp_config.h` habilita solo:
+`config/smartlamp_config.h` enables only:
 
 ```c
 MBEDTLS_AES_C
@@ -30,16 +30,16 @@ MBEDTLS_PLATFORM_C
 MBEDTLS_PLATFORM_MEMORY
 ```
 
-`third_party/mbedtls/CMakeLists.txt` define el target estático **`mbedtls`**
-y propaga `MBEDTLS_CONFIG_FILE` a los consumidores.
+`third_party/mbedtls/CMakeLists.txt` defines the static target **`mbedtls`**
+and propagates `MBEDTLS_CONFIG_FILE` to consumers.
 
-Uso previsto: **AES-256-GCM** y **SHA-256** del `.ota` (bloque 11).
+Intended use: **AES-256-GCM** and **SHA-256** for `.ota` files.
 
-## Actualizar
+## Updating
 
-1. Descargar el tarball `mbedtls-X.Y.Z.tar.bz2`.
-2. Sustituir `include/mbedtls/`.
-3. Copiar de `library/` los 9 `.c` listados arriba y las 6 cabeceras internas.
-4. Revisar `config/smartlamp_config.h` si la nueva versión exige macros
-   adicionales (compilar `test_crypto` lo detecta).
-5. Actualizar `LICENSE` y `ChangeLog`.
+1. Download the `mbedtls-X.Y.Z.tar.bz2` tarball.
+2. Replace `include/mbedtls/`.
+3. Copy the 9 `.c` files listed above and the 6 internal headers from `library/`.
+4. Review `config/smartlamp_config.h` if the new release requires additional
+   macros (building `test_crypto` detects this).
+5. Update `LICENSE` and `ChangeLog`.

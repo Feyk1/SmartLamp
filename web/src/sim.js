@@ -108,7 +108,7 @@
   async function simApi(path, options = {}) {
     if (!token) {
       showPin();
-      throw new Error("sin sesión de simulación");
+      throw new Error("no simulation session");
     }
     const headers = { Authorization: `Bearer ${token}`,
                       ...(options.headers || {}) };

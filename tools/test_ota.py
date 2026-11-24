@@ -119,7 +119,7 @@ def write_fixtures(directory: Path) -> None:
     bad_hw = artifact("1.2.0", hw_compat=0x2)
     (directory / "test_bad_hw.ota").write_bytes(bad_hw)
 
-    print(f"✓ fixtures en {directory}")
+    print(f"✓ fixtures in {directory}")
 
 
 def main() -> int:
