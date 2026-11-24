@@ -111,6 +111,8 @@ class MemoryStore:
         return instance
 
     def _expired(self, instance: Instance) -> bool:
+        if settings.INSTANCE_MODE != "fly":
+            return False
         age = (utc_now() - instance.created_at).total_seconds()
         if age > instance.ttl_s:
             return True

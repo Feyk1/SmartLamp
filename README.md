@@ -8,6 +8,9 @@ Public demo of a **smart lamp** with **FreeRTOS firmware simulated on POSIX**, *
 > `http://localhost:3000`. Sim panel: `http://localhost:3000/sim.html?pin=2025`.
 > Dashboard in English by default; `?lang=es` switches it to Spanish.
 >
+> **▶ Try the live demo:** <https://feyk1.github.io/SmartLamp/>
+> Dashboard + Simulation Panel (PIN `2025`), no installation.
+>
 > **📚 Read the documentation online:** <https://feyk1.github.io/SmartLamp/docs/>
 > The MkDocs site is the recommended way to read the user manual, architecture,
 > OTA, security, deployment and ADRs.

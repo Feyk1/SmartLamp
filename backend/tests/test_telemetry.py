@@ -42,6 +42,21 @@ def test_health_requires_device_token():
     assert response.json()["error"]["code"] == "UNAUTHORIZED"
 
 
+def test_device_telemetry_does_not_extend_dashboard_heartbeat(monkeypatch):
+    monkeypatch.setattr(settings, "INSTANCE_MODE", "fly")
+    instance = store.create(ttl_s=3600, device_token="dev-expired")
+    instance.last_heartbeat = time.time() - settings.HEARTBEAT_TIMEOUT_S - 1
+    before = instance.last_heartbeat
+
+    response = client.post(
+        "/api/v1/telemetry/health?token=dev-expired",
+        json={"device_id": "lamp-expired", "uptime_s": 5},
+    )
+
+    assert response.status_code == 404
+    assert instance.last_heartbeat == before
+
+
 def test_health_accepts_fly_instance_token():
     instance = store.create(ttl_s=3600, device_token="dev-fly-instance")
 

@@ -16,8 +16,8 @@ def require_device_instance(
     """Resolves the device's active instance or raises `ApiError`.
 
     Accepts the token via query (`?token=`) or header (`X-Device-Token`).
-    Touching the instance on every device request keeps it from expiring
-    while the firmware is alive (local demo). See D38 in progress.md.
+    Device traffic does not extend the dashboard heartbeat: Fly instances
+    expire when the browser stops sending heartbeats.
     """
     provided = x_device_token or token
     if not provided:
@@ -31,4 +31,4 @@ def require_device_instance(
             404, "INSTANCE_NOT_FOUND", "no active instance for this device"
         )
     limit_device(provided)
-    return store.touch(instance.id) or instance
+    return instance
