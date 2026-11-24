@@ -140,8 +140,10 @@ A single container with:
 
 **Implementation:** `infra/instance/Dockerfile` (+
 `entrypoint.sh`) builds a container with the driver, firmware, bootloader and
-supervisor; the driver stays on `127.0.0.1:5020` and the supervisor on `5022`
-(6PN). The orchestrator (`backend/src/orchestrator/`) creates the App + Machine
+supervisor; the driver stays on `127.0.0.1:5020` and the supervisor on
+`0.0.0.0:5022`. `entrypoint.sh` exposes both on IPv6 for the 6PN with
+`socat`, because the orchestrator reaches the Machine over IPv6. The
+orchestrator (`backend/src/orchestrator/`) creates the App + Machine
 with `auto_destroy`, waits for its private IP and uses it for Modbus and the
 supervisor channel. Cleanup of expired and orphaned instances runs in a
 background task. The operational guide is in [`deployment.md`](deployment.md).

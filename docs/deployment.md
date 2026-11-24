@@ -185,7 +185,8 @@ docker push registry.fly.io/lamp-instance-base:latest
 
 The `deploy-instance-image.yml` workflow does the same in CI. The image includes
 the driver, firmware, bootloader and supervisor; the driver listens on
-`127.0.0.1:5020` and the supervisor on `0.0.0.0:5022` (6PN only). It weighs
+`127.0.0.1:5020` and the supervisor on `0.0.0.0:5022`; `entrypoint.sh` exposes
+both on IPv6 for the 6PN with `socat`. It weighs
 ≈130 MB with `debian:bookworm-slim`; the binaries add up to less than 1 MB.
 
 ### 3.6 Dashboard and artifacts
