@@ -262,7 +262,7 @@ without touching the lamp.
 **Base URL (public):** `https://lamp-demo-orchestrator.fly.dev/api/v1/device`
 
 On Fly, ephemeral instances use the private 6PN endpoint
-`http://lamp-demo-orchestrator.internal:8080/api/v1/device`; the firmware has
+`http://lamp-demo-orchestrator.internal:8081/api/v1/device`; the firmware has
 no TLS client. The public HTTPS/WSS edge serves browsers.
 **Auth:** `Authorization: Bearer <device_token>` (opaque token, 32 B hex)
 
@@ -375,7 +375,7 @@ The firmware confirms with `POST /commands/{id}/ack` or `POST /commands/{id}/nac
 **URL:** `wss://lamp-demo-orchestrator.fly.dev/ws/device?token=<device_token>`
 
 On Fly, the firmware connects to
-`ws://lamp-demo-orchestrator.internal:8080/ws/device` over 6PN. The public WSS
+`ws://lamp-demo-orchestrator.internal:8081/ws/device` over 6PN. The public WSS
 endpoint is for external clients and the dashboard.
 
 One persistent connection per instance. If it drops, the firmware reconnects with **exponential backoff** (1s, 2s, 4s, 8s, 16s, max 30s; no jitter).

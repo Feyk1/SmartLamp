@@ -114,7 +114,7 @@ sequenceDiagram
     "auto_destroy": true,
     "env": {
       "DEVICE_TOKEN": "<token>",
-      "ORCH_WS_URL": "ws://lamp-demo-orchestrator.internal:8080/ws/device",
+      "ORCH_WS_URL": "ws://lamp-demo-orchestrator.internal:8081/ws/device",
       "IDLE_TIMEOUT_S": "300"
     },
     "guest": { "cpu_kind": "shared", "cpus": 1, "memory_mb": 256 }
