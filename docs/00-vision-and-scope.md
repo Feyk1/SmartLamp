@@ -91,9 +91,9 @@ The lamp was chosen because:
 > (actual vs commanded) is a future improvement, not implemented; the
 > Simulation Panel's Modbus tab shows target and actual registers side by side.
 >
-> A ✅ in these tables means the feature is part of the demo scope, not that it
-> is deployed. Fly.io and Pages deployment are pending; see the README for the
-> current status.
+> A ✅ in these tables means the feature is part of the demo scope. The public
+> demo is deployed at <https://feyk1.github.io/SmartLamp/> with the orchestrator
+> at <https://lamp-demo-orchestrator.fly.dev>.
 
 ### 3.6 CI/CD and infrastructure
 

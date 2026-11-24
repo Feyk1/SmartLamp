@@ -4,6 +4,12 @@ The demo runs locally with Docker Compose and does not require any cloud account
 This guide first describes the provider-neutral deployment and then the reference
 implementation that ships with the repository: **Fly.io + GitHub Pages**.
 
+The reference deployment is live:
+
+- Dashboard: <https://feyk1.github.io/SmartLamp/>
+- Documentation: <https://feyk1.github.io/SmartLamp/docs/>
+- Orchestrator health: <https://lamp-demo-orchestrator.fly.dev/health>
+
 The design and the trade-offs are in [`06-deployment.md`](06-deployment.md); here
 you find the steps and what is already implemented.
 

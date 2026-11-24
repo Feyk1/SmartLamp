@@ -8,7 +8,7 @@ Public demo of a **smart lamp** with **FreeRTOS firmware simulated on POSIX**, *
 > `http://localhost:3000`. Sim panel: `http://localhost:3000/sim.html?pin=2025`.
 > Dashboard in English by default; `?lang=es` switches it to Spanish.
 
-**▶ Local demo** · **[📐 Architecture](docs/01-general-architecture.md)** · **[🧭 Decisions (ADR)](docs/adr/)** · **[🧪 Tests](#tests-and-quality)** · **[🚀 Deployment](docs/deployment.md)**
+**▶ Live demo:** <https://feyk1.github.io/SmartLamp/> · **[📚 Docs](https://feyk1.github.io/SmartLamp/docs/)** · **[📐 Architecture](docs/01-general-architecture.md)** · **[🧭 Decisions (ADR)](docs/adr/)** · **[🧪 Tests](#tests-and-quality)** · **[🚀 Deployment](docs/deployment.md)**
 
 ## Contents
 
@@ -443,14 +443,14 @@ mkdocs build --strict  # validation
 
 ## Project status
 
-🚧 **Local demo complete; public deployment pending.**
+✅ **Public demo deployed.**
 
 | Area | State |
 | :--- | :--- |
 | Local demo: POSIX firmware, LED driver, WS backend, dashboard | ✅ End-to-end |
 | Telemetry, OTA, CI/CD | ✅ Implemented and tested |
 | Simulation Panel, fault handling, security | ✅ Implemented and tested |
-| Public deployment (orchestrator, Pages) | 🚧 Code ready; deployment pending |
+| Public deployment (orchestrator, Pages) | ✅ Live at `feyk1.github.io/SmartLamp` and `lamp-demo-orchestrator.fly.dev` |
 
 ## Costs and limits
 
