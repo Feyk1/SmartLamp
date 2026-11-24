@@ -300,8 +300,8 @@ If `verify` fails, `release` does not run and **nothing is published**.
 
 The `release` job uploads the signed `.ota` to GitHub Releases. A separate
 `pages` job builds the static site with `web/build_site.sh _site`, which copies
-the artifact into `_site/firmware/<version>/`, builds the MkDocs site into
-`_site/docs/`, and deploys `_site`.
+the artifact into `_site/firmware/<version>/`, and builds the MkDocs site into
+`_site/docs/`. A separate `pages-deploy` job publishes the artifact.
 
 ```yaml
 release:
@@ -428,11 +428,8 @@ permissions:
   pages: write
   id-token: write
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Build site
@@ -452,6 +449,14 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
 ```

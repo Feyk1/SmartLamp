@@ -130,16 +130,9 @@ jobs:
           generate_release_notes: true
 
   pages:
-    name: Publicar en Pages
+    name: Construir dashboard y documentación
     needs: [build, verify]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -166,5 +159,17 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  pages-deploy:
+    name: Publicar en Pages
+    needs: [pages]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -16,12 +16,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Desplegar dashboard
+  build:
+    name: Construir dashboard y documentación
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Construir el sitio
@@ -42,5 +39,14 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  deploy:
+    name: Desplegar Pages
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
