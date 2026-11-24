@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from src import settings
 from src.main import app
+from src.store.memory import store
 
 client = TestClient(app)
 TOKEN = settings.DEVICE_TOKEN
@@ -39,6 +40,19 @@ def test_health_requires_device_token():
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "UNAUTHORIZED"
+
+
+def test_health_accepts_fly_instance_token():
+    instance = store.create(ttl_s=3600, device_token="dev-fly-instance")
+
+    response = client.post(
+        "/api/v1/telemetry/health?token=dev-fly-instance",
+        json={"device_id": "lamp-fly", "uptime_s": 5},
+    )
+
+    assert response.status_code == 204
+    assert instance.last_health is not None
+    assert instance.last_health["uptime_s"] == 5
 
 
 def test_health_serial_is_exposed_in_instance():

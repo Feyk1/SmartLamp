@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import secrets
-
 from fastapi import Header, Query
 
-from src import settings
 from src.api.errors import ApiError
 from src.security.rate_limit import limit_device
 from src.store.memory import Instance, store
@@ -25,9 +22,9 @@ def require_device_instance(
     provided = x_device_token or token
     if not provided:
         raise ApiError(401, "UNAUTHORIZED", "missing device token")
-    if not secrets.compare_digest(provided, settings.DEVICE_TOKEN):
-        raise ApiError(401, "UNAUTHORIZED", "invalid device token")
 
+    # Local mode uses a shared DEVICE_TOKEN; Fly mode generates a unique token
+    # per instance. In both cases the active instance is the authority.
     instance = store.find_by_device_token(provided)
     if instance is None:
         raise ApiError(
