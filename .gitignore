@@ -28,6 +28,9 @@ out/
 *.map
 !docs/firmware/**/*.ota
 !tests/fixtures/**/*.bin
+!firmware/test/fixtures/**/*.ota
+!firmware/test/fixtures/**/*.pem
+!firmware/test/fixtures/**/*.bin
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake

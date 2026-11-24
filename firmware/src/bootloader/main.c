@@ -371,7 +371,6 @@ static int boot_slot(const ab_state_t *state)
             ssize_t written = write(fd, image, size);
 
             (void)close(fd);
-            free(image);
             if (written == (ssize_t)size) {
                 rc = (int)execve(path, (char *const[]){"firmware", NULL},
                                  environ);
