@@ -10,11 +10,11 @@ example.
 | Principle | Implication |
 | :--- | :--- |
 | **Three separate planes** | Static (Pages), control (orchestrator on Fly.io), instance (ephemeral Fly App per visit) |
-| **Scale-to-zero on control** | The orchestrator suspends without traffic; cost ≈ $0 |
+| **Always-on orchestrator** | Kept awake for backend schedules; ~$2.19/month while running |
 | **Auto-destroy on instances** | Each instance destroys itself after inactivity, without depending on the orchestrator |
-| **Real isolation** | Firecracker microVM + private 6PN network per App |
+| **Process isolation** | Firecracker microVM per instance; the organization 6PN is shared |
 | **CORS solved at the origin** | `.ota` binaries served from Pages itself, not from Releases |
-| **Controlled cost** | Fly.io trial + <$2/month post-trial with scale-to-zero and auto-destroy |
+| **Controlled cost** | Fly.io trial + ~$2/month post-trial; instances auto-destroy |
 
 ## 2. Deployment architecture: three planes
 
@@ -24,7 +24,7 @@ flowchart TD
     P[Dashboard + Simulation Panel + docs + .ota]
   end
   subgraph Control[Control plane · Fly.io]
-    O[Orchestrator<br/>scale-to-zero]
+    O[Orchestrator<br/>always on]
   end
   subgraph Instance[Instance plane · Fly.io]
     I1[Ephemeral app lamp-a]
@@ -38,10 +38,10 @@ flowchart TD
 | Plane | Where it lives | What it runs | Lifetime |
 | :--- | :--- | :--- | :--- |
 | **Static** | GitHub Pages | Dashboard, Simulation Panel, docs, `.ota` binaries | Permanent |
-| **Control** | Fly.io (App `lamp-demo-orchestrator`) | Backend API, WS gateway, instance creation | Scale-to-zero (suspends without traffic) |
+| **Control** | Fly.io (App `lamp-demo-orchestrator`) | Backend API, WS gateway, instance creation | Always on (schedules) |
 | **Instance** | Fly.io (App `lamp-<uuid>` per visit) | Supervisor + bootloader + firmware + LED driver | Ephemeral (`auto_destroy: true`) |
 
-**Why a separate instance plane:** the requirement for multiple isolated instances that shut down on inactivity is solved naturally with **one dedicated Fly App per visit**. Fly.io can create Apps and Machines through its API in milliseconds, and each App has its own 6PN network, which guarantees network isolation.
+**Why a separate instance plane:** the requirement for multiple isolated instances that shut down on inactivity is solved naturally with **one dedicated Fly App per visit**. Fly.io can create Apps and Machines through its API in milliseconds. Each App has app-scoped DNS on the organization's shared 6PN network; private ports are not exposed publicly, but the 6PN itself is not a per-App network.
 
 ## 3. Control plane: orchestrator on Fly.io
 
@@ -52,14 +52,14 @@ app = "lamp-demo-orchestrator"
 primary_region = "iad"
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = "infra/Dockerfile.orchestrator"
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "suspend"
+  auto_stop_machines = "off"
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
 
 [[vm]]
   cpu_kind = "shared"
@@ -67,8 +67,8 @@ primary_region = "iad"
   memory_mb = 256
 ```
 
-- `auto_stop_machines = "suspend"` and `min_machines_running = 0` enable **scale-to-zero**: without traffic, the Machine suspends; when a request arrives, it resumes in **hundreds of milliseconds** compared with ~2 s for a cold start from `stop`.
-- `auto_start_machines = true` guarantees that the first request after a period of inactivity wakes the orchestrator automatically.
+- `auto_stop_machines = "off"` and `min_machines_running = 1` keep the orchestrator awake because backend schedules must run. Without schedules, it can return to `suspend` / `0`.
+- A 1 GB `lamp_data` volume is mounted at `/data` for schedules, provisioning and OTA artifacts.
 - 256 MB of RAM is enough because the orchestrator does not run firmware, it only routes requests and calls the Machines API.
 
 ### 3.2 Orchestrator responsibilities
@@ -122,7 +122,7 @@ sequenceDiagram
 }
 ```
 
-Creating the App with its own 6PN network isolates each instance: a Machine of `lamp-a` cannot route to `lamp-b`. `auto_destroy: true` makes Fly delete it automatically when the internal agent signals inactivity, without needing the orchestrator to be awake to do the cleanup.
+Each App gets its own DNS name and Machine on the organization's shared 6PN network. Private ports are not publicly exposed, but the 6PN is not a per-App network. `auto_destroy: true` makes Fly delete the Machine automatically when the internal agent signals inactivity, without needing the orchestrator to be awake for cleanup.
 
 ### 4.3 Ephemeral instance image
 
@@ -248,20 +248,20 @@ Fly.io **no longer offers a free tier for new accounts**: only a trial of **2 ho
 | Resource | Cost | Note |
 | :--- | :--- | :--- |
 | shared-cpu-1x 256 MB Machine | **$2.19/month** if always on | But you only pay while it runs |
-| Suspended orchestrator | ~$0.15/month (rootfs) | No CPU/RAM while suspended |
+| Always-on orchestrator | **$2.19/month** | Required for schedules |
 | Ephemeral instance (5 min) | ~$0.0002 | At $0.003/hour |
-| Persistent volume | **$0.15/GB/month** | **Do not use** for ephemeral instances |
+| `lamp_data` volume | **$0.15/GB/month** | 1 GB for schedules, provisioning and OTA |
 | Egress | $0.02/GB | Minimal for a demo |
 
-**Realistic scenario:** 20 short visits per month → **< $1/month**. A shared-cpu-1x Machine with 256 MB costs $2.19/month if it were always on, but you only pay while it runs.
+**Realistic scenario:** the orchestrator costs ~$2.19/month plus the 1 GB volume; instances add cents for short visits.
 
 A short public summary of the cost:
 
-> *"Demo deployed with a Fly.io trial. For continuous use, the estimated cost is <$2/month with scale-to-zero and auto-destroy."*
+> *"Demo deployed with a Fly.io trial. For continuous use, the estimated cost is ~$2/month: the orchestrator stays awake for schedules and instances auto-destroy."*
 
 ### 7.3 Warning about volumes
 
-**Do not use persistent volumes** for the ephemeral instances: a 10 GB volume costs $1.50/month even when stopped, more than everything else combined. `flash.bin` lives inside the ephemeral rootfs and is destroyed with the Machine.
+**Do not use persistent volumes** for the ephemeral instances: a 10 GB volume costs $1.50/month even when stopped, more than everything else combined. `flash.bin` lives inside the ephemeral rootfs and is destroyed with the Machine. The orchestrator does use a 1 GB `lamp_data` volume for `/data`.
 
 ## 8. Simplified alternative (if time is tight)
 
@@ -277,21 +277,21 @@ If the Machines API adds too much complexity for the demo scope:
 
 ### 9.1 Pre-deployment
 
-- [ ] `FLY_ORG_TOKEN` configured in the orchestrator secrets
-- [ ] `FLY_API_TOKEN` configured in GitHub Secrets
-- [ ] `OTA_AES_KEY` and `OTA_SIGNING_KEY` in GitHub Secrets (`release` environment)
-- [ ] `keys/ota_public.pem` committed to the repo
-- [ ] `fly.toml` with `auto_stop_machines = "suspend"` and `min_machines_running = 0`
-- [ ] Instance image <100 MB with a working healthcheck
+- [x] `FLY_ORG_TOKEN` configured in the orchestrator secrets
+- [x] `FLY_API_TOKEN` configured in GitHub Secrets
+- [x] `OTA_AES_KEY` and `OTA_SIGNING_KEY` in GitHub Secrets (`release` environment)
+- [x] `keys/ota_public.pem` committed to the repo
+- [x] `fly.toml` with `auto_stop_machines = "off"`, `min_machines_running = 1` and the `lamp_data` mount
+- [x] Instance image builds and starts a Machine with the firmware
 
 ### 9.2 Post-deployment
 
-- [ ] `curl https://lamp-demo-orchestrator.fly.dev/health` responds 200
-- [ ] `POST /instances` creates a real Machine (`fly apps list` confirms it)
-- [ ] The instance destroys itself after `IDLE_TIMEOUT_S`
-- [ ] The dashboard on Pages connects to the orchestrator over WSS
-- [ ] The `.ota` binaries download from Pages without a CORS error
-- [ ] The Fly.io trial has not expired (or the project has moved to a paid plan)
+- [x] `curl https://lamp-demo-orchestrator.fly.dev/health` responds 200
+- [x] `POST /instances` creates a real Machine (`fly apps list` confirms it)
+- [x] The instance destroys itself after `IDLE_TIMEOUT_S`
+- [x] The dashboard on Pages connects to the orchestrator over WSS
+- [x] The `.ota` artifacts are in `/data/ota` and OTA succeeds
+- [x] The Fly.io trial has not expired (or the project has moved to a paid plan)
 
 ## 10. What is NOT implemented (and why)
 

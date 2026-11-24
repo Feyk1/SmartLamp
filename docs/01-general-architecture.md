@@ -41,7 +41,7 @@ Public content, no secrets:
 
 ### 2.2 Control plane (Fly.io — orchestrator)
 
-A dedicated Fly App with `auto_stop_machines = "suspend"` and `min_machines_running = 0`.
+A dedicated Fly App with `auto_stop_machines = "off"` and `min_machines_running = 1` because schedules run in the backend.
 
 | Responsibility | Detail |
 | :--- | :--- |
@@ -53,14 +53,14 @@ A dedicated Fly App with `auto_stop_machines = "suspend"` and `min_machines_runn
 | REST `/telemetry/*` | Persists (in memory or SQLite) firmware telemetry |
 | `POST /instances/{id}/ota` | Serves the `.ota` in legit/corrupt/downgrade mode |
 
-**Scaling:** with scale-to-zero, the orchestrator is suspended when there is no traffic. Cost ≈ $0.15/month per rootfs.
+**Scaling:** the orchestrator stays awake for schedules (~$2.19/month); instances remain ephemeral. Without schedules it can return to `suspend` / `0`.
 
 ### 2.3 Instance plane (Fly.io — one App per visit)
 
 Created on demand with:
 
 - Name: `lamp-<uuid>`.
-- Its own 6PN network (`lamp-<uuid>`).
+- Its own App-scoped DNS name on the organization 6PN (`lamp-<uuid>.internal`).
 - One Machine with `auto_destroy: true`.
 - `IDLE_TIMEOUT_S=300` for self-destruction.
 
@@ -82,7 +82,7 @@ flowchart TD
 **Isolation:**
 
 - One Firecracker microVM per Machine.
-- Private 6PN network per App.
+- App-scoped DNS on the organization 6PN; private ports are not exposed publicly.
 - `flash.bin` on an ephemeral rootfs, destroyed with the Machine.
 - Unique `device_token` per instance.
 

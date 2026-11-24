@@ -315,7 +315,7 @@ This section is the most delicate one: on real hardware, **RDP (Read-Out Protect
 - [ ] `session_token.instance_id` is validated on every request
 - [ ] `/sim/*` requires `role: sim`
 - [ ] Ephemeral instances do not expose public ports
-- [ ] 6PN network per App (not shared)
+- [ ] 6PN ports are private; the network is organization-wide, not per-App
 - [ ] `flash.bin` in the ephemeral rootfs (not a persistent volume)
 - [ ] Logs do not include `device_token` or `session_token` in plaintext
 - [ ] `verify_ota.py` passes in CI before publishing

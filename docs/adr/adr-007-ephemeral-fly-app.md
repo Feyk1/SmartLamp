@@ -25,7 +25,7 @@ Three deployment architectures were evaluated:
 
 **An ephemeral Fly App per visit is chosen:**
 
-- The orchestrator creates an App (`lamp-<uuid>`) with its own 6PN network.
+- The orchestrator creates an App (`lamp-<uuid>`) with app-scoped DNS on the organization 6PN network.
 - Inside the App, a Machine is created with `auto_destroy: true`.
 - The Machine contains the supervisor, bootloader, firmware and LED driver.
 - After inactivity (`IDLE_TIMEOUT_S`), the instance agent signals `auto_destroy` and Fly destroys the Machine.
@@ -71,8 +71,8 @@ Three deployment architectures were evaluated:
 ### Alternative C: Ephemeral Fly App per visit (chosen)
 
 **Advantages:**
-- **Real isolation:** each instance is a Firecracker microVM with its own kernel, 6PN network and filesystem.
-- **Network isolation:** each App has its own 6PN network; one instance cannot route to another.
+- **Real isolation:** each instance is a Firecracker microVM with its own kernel and filesystem.
+- **Private networking:** each App has app-scoped DNS and private ports; the 6PN itself is organization-wide, not per-App.
 - **Token isolation:** each instance has its own `device_token`, injected when the Machine is created.
 - **Native ephemerality:** `auto_destroy: true` makes Fly destroy the Machine automatically.
 - **Scale-to-zero per instance:** if an instance is idle, its Machine is destroyed without affecting the others.
@@ -124,7 +124,7 @@ async def create_instance(instance_id: str, device_token: str):
     await fly_api.post("/v1/apps", json={
         "app_name": app_name,
         "org_slug": FLY_ORG_SLUG,
-        "network": app_name,  # own 6PN
+        "network": app_name,  # app-scoped DNS on the organization 6PN
     })
     # 2. Create Machine
     await fly_api.post(f"/v1/apps/{app_name}/machines", json={

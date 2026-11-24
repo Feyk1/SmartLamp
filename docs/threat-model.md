@@ -146,7 +146,7 @@ flowchart TD
 | **D**enial of service | Flood with polls | Rate limiting in the firmware; the driver accepts no more than N connections | Low |
 | **E**levation of privilege | Write to `flash.bin` from the driver | The driver has no access to `flash.bin`; only to `driver_state.bin` | None |
 
-**Note:** Modbus has no authentication by design. In a real product, the bus would be physically isolated (RS-485 inside an enclosure) or Modbus Security (TLS) would be used. In the demo, 6PN network isolation is the main mitigation.
+**Note:** Modbus has no authentication by design. In a real product, the bus would be physically isolated (RS-485 inside an enclosure) or Modbus Security (TLS) would be used. In the demo, the 6PN keeps private ports off the public internet, but the network is shared across the organization, not per-App.
 
 ### 6.5 Dashboards (browser)
 
@@ -281,7 +281,7 @@ This is preferable to simulating RDP artificially or claiming that a Linux proce
 | **Rate limiting per IP** | D in the orchestrator, AT-3 | ✅ | — |
 | **Global instance limit** | D in the orchestrator, AT-3 | ✅ | — |
 | **`auto_destroy` + `agent-idle`** | A1, AT-3 | ✅ | — |
-| **6PN network per App** | S in Modbus, AT-2 | ✅ | — |
+| **Private 6PN ports** | S in Modbus, AT-2 | ✅ | The 6PN is organization-wide, not per-App |
 | **Firecracker microVM** | E in the firmware | ✅ | — |
 | **Constant-time comparison** | Timing attack on `device_token` | ✅ | — |
 | **`release` environment with reviewers** | T in CI, AT-1 | ✅ | — |
@@ -303,7 +303,7 @@ This is preferable to simulating RDP artificially or claiming that a Linux proce
 | **R1** | XSS in the dashboard steals `session_token` | Medium | Medium | Yes | 1 h tokens; ephemeral instances; CSP as a next step |
 | **R2** | Abuse of `POST /instances` with rotating IPs | Medium | Medium | Yes | Global limit partially mitigates; Turnstile as a next step |
 | **R3** | Compromise of `OTA_SIGNING_KEY` in GitHub Secrets | High | Low | Yes | `release` environment + required reviewers; HSM as a next step |
-| **R4** | Modbus without authentication allows writing registers from the 6PN network | Medium | Low | Yes | Per-App isolation; only the firmware and the sim panel have access |
+| **R4** | Modbus without authentication allows writing registers from the shared 6PN network | Medium | Low | Yes | Private 6PN ports and ephemeral App names; no per-App network isolation |
 | **R5** | Absence of an MPU allows cross-task corruption | Low | Low | Yes | FreeRTOS POSIX does not use an MPU; documented in §8 |
 | **R6** | Non-deterministic scheduling invalidates real-time guarantees | Low | High | Yes | Documented; no real-time guarantees are claimed |
 | **R7** | Lack of persistent audit | Low | Medium | Yes | Fly.io logs are the only source; 30-day retention |
