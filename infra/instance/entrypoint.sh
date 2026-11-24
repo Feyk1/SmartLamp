@@ -10,8 +10,8 @@ set -eu
 
 # Fly 6PN is IPv6, while the driver and supervisor listen on IPv4 loopback.
 # Expose both private ports on IPv6 for the orchestrator and the Sim panel.
-socat TCP6-LISTEN:5022,fork,reuseaddr TCP4:127.0.0.1:5022 &
-socat TCP6-LISTEN:5020,fork,reuseaddr TCP4:127.0.0.1:5020 &
+socat TCP6-LISTEN:5022,ipv6only=1,fork,reuseaddr TCP4:127.0.0.1:5022 &
+socat TCP6-LISTEN:5020,ipv6only=1,fork,reuseaddr TCP4:127.0.0.1:5020 &
 
 /app/driver &
 exec /app/supervisor
