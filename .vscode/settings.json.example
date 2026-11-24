@@ -1,0 +1,49 @@
+{
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build-test/compile_commands.json",
+  "C_Cpp.default.cStandard": "c99",
+  "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/firmware/include",
+    "${workspaceFolder}/driver/include",
+    "${workspaceFolder}/firmware/config",
+    "${workspaceFolder}/firmware/third_party/**"
+  ],
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.errorSquiggles": "enabled",
+  "C_Cpp.autocompleteAddParentheses": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/backend"
+  ],
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.testing.pytestEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}/backend",
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "files.exclude": {
+    "build": true,
+    "build-test": true,
+    "build-ota-*": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true
+  },
+  "search.exclude": {
+    "build/**": true,
+    "build-test/**": true,
+    "build-ota-*/**": true,
+    "backend/.venv": true
+  },
+  "cmake.configureOnOpen": false,
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.generator": "Ninja",
+  "cmake.configureSettings": {
+    "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+  },
+  "files.associations": {
+    "*.h": "c"
+  }
+}

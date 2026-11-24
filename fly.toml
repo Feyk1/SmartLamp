@@ -1,0 +1,48 @@
+# Smart Lamp Demo — Fly.io orchestrator
+#
+# The build context is the repository root: this file lives at the root
+# because flyctl uses the directory containing fly.toml as the context.
+#
+# Before deploying, review `app` and `primary_region`. `DASHBOARD_ORIGINS`
+# points to the GitHub Pages origin (CORS uses scheme + host, not the repo path).
+
+app = "lamp-demo-orchestrator"
+primary_region = "iad"
+
+[build]
+  dockerfile = "infra/Dockerfile.orchestrator"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Schedules live in the backend: keep one Machine awake.
+  # If you do not use schedules, you can set "suspend" / 0 and accept that
+  # they will not run while the orchestrator sleeps.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+# Optional persistence: create the volume before deploying and uncomment.
+# fly volumes create lamp_data --size 1 --region iad
+# [[mounts]]
+#   source = "lamp_data"
+#   destination = "/data"
+
+[env]
+  INSTANCE_MODE = "fly"
+  PUBLIC_HTTP_BASE = "https://lamp-demo-orchestrator.fly.dev"
+  PUBLIC_WS_BASE = "wss://lamp-demo-orchestrator.fly.dev"
+  FLY_REGION = "iad"
+  FLY_INSTANCE_BASE_APP = "lamp-instance-base"
+  OTA_DIR = "/data/ota"
+  SCHEDULES_DB = "/data/schedules.db"
+  PROVISIONING_DB = "/data/provisioning.db"
+  HEARTBEAT_TIMEOUT_S = "120"
+  INSTANCE_TTL_S = "3600"
+  # Dashboard origin (GitHub Pages). Replace with the real user.
+  DASHBOARD_ORIGINS = "https://feyk1.github.io"

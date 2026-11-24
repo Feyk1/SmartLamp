@@ -1,0 +1,100 @@
+site_name: Smart Lamp Demo
+site_description: Public documentation for the Smart Lamp demo
+site_url: !ENV [DOCS_SITE_URL, "http://127.0.0.1:8000/"]
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - content.code.copy
+  palette:
+    - scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search:
+      lang:
+        - en
+        - es
+
+exclude_docs: |
+  progress.md
+  09-plan-de-3-semanas.md
+  PUBLISHING.md
+
+nav:
+  - Home: README.md
+  - User manual:
+      - Overview: manual/README.md
+      - Getting started: manual/00-getting-started.md
+      - Dashboard: manual/01-dashboard.md
+      - Pairing: manual/02-pairing.md
+      - Scenes and effects: manual/03-scenes-effects.md
+      - Sequences: manual/04-sequences.md
+      - Schedules: manual/05-schedules.md
+      - Faults: manual/06-faults.md
+      - OTA and slots: manual/07-ota-slots.md
+      - Simulation panel: manual/08-simulation-panel.md
+      - Troubleshooting: manual/09-troubleshooting.md
+      - Controls reference: manual/10-controls-reference.md
+      - Local assistant: manual/11-assistant.md
+  - Architecture:
+      - Vision and scope: 00-vision-and-scope.md
+      - General architecture: 01-general-architecture.md
+      - Communications: 02-communications.md
+      - Modbus register map: 03-modbus-register-map.md
+      - OTA and image security: 04-ota-and-image-security.md
+      - CI/CD: 05-ci-cd.md
+      - Deployment design: 06-deployment.md
+      - Dashboards and UX: 07-dashboards-ux.md
+      - Security and threat model: 08-security-and-threat-model.md
+  - Operations:
+      - Auth: auth.md
+      - Deployment: deployment.md
+      - Key management: key-management.md
+      - Threat model: threat-model.md
+  - Reference:
+      - Diagrams: diagrams/index.md
+      - Assets: assets/index.md
+  - ADRs:
+      - ADR index: adr/index.md
+      - ADR-001: adr/adr-001-freertos-posix-port.md
+      - ADR-002: adr/adr-002-mmap-flash.md
+      - ADR-003: adr/adr-003-execve-transitions.md
+      - ADR-004: adr/adr-004-supervisor-pmic.md
+      - ADR-005: adr/adr-005-modbus-driver-led.md
+      - ADR-006: adr/adr-006-rest-ws-hybrid.md
+      - ADR-007: adr/adr-007-ephemeral-fly-app.md
+      - ADR-008: adr/adr-008-binaries-on-pages.md
+      - ADR-009: adr/adr-009-ed25519-aes-gcm.md
+      - ADR-010: adr/adr-010-jwt-vs-opaque-token.md

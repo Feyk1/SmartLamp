@@ -1,0 +1,17 @@
+.git
+.github
+.opencode
+build
+build-*
+backend/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/*.egg-info
+flash.bin
+docs
+# The public key does go into the instance image; the private one does not exist here.
+keys/*
+!keys/ota_public.pem
+web/node_modules
+firmware/releases

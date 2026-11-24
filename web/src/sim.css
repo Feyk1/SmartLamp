@@ -1,0 +1,374 @@
+.sim-app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+
+.sim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.sim-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.sim-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sim-actions a,
+.sim-header a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+
+.tab-btn {
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 9px 14px;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.tab-btn.active {
+  color: var(--text);
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.tab-panel {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tab-panel.active {
+  display: flex;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 14px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+label.inline {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+label.inline input,
+label.inline select {
+  width: auto;
+  min-width: 70px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #0f141b;
+  color: var(--text);
+}
+
+label.checkbox {
+  gap: 6px;
+}
+
+label.checkbox input {
+  width: auto;
+}
+
+button.small {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+button.primary {
+  background: linear-gradient(180deg, #2a6f97, #1f506f);
+  border-color: #3d8fbd;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 8px 0 0;
+}
+
+.callout {
+  border: 1px solid rgba(76, 194, 255, 0.3);
+  background: rgba(76, 194, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.table-wrap th,
+.table-wrap td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table-wrap th {
+  color: var(--muted);
+  font-weight: 500;
+  position: sticky;
+  top: 0;
+  background: var(--card);
+}
+
+.table-wrap td.num {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.timeline,
+.logs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.timeline li,
+.logs li {
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--border);
+  color: var(--text);
+}
+
+.timeline li span.ts,
+.logs li span.ts {
+  color: var(--muted);
+  margin-right: 8px;
+}
+
+.logs li.warn span.level {
+  color: #d29922;
+}
+
+.logs li.error span.level {
+  color: var(--bad);
+}
+
+.fault-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.fault-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fault-card strong {
+  font-size: 0.85rem;
+}
+
+.fault-card span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.pin-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.pin-overlay.hidden {
+  display: none;
+}
+
+.pin-box {
+  width: min(340px, 90vw);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pin-box h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.pin-box input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0f141b;
+  color: var(--text);
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+}
+
+.error {
+  color: var(--bad);
+  font-size: 0.8rem;
+  min-height: 1em;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sim-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ------------------------------------------------------------------
+   B32: readable history on mobile and natural-width actions
+   ------------------------------------------------------------------ */
+
+#fault-clear,
+#history-clear {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+#fw-current {
+  margin: 2px 0 4px;
+}
+
+#fw-mode-hint {
+  margin: 0 0 8px;
+}
+
+@media (max-width: 720px) {
+  #fault-history table,
+  #fault-history thead,
+  #fault-history tbody,
+  #fault-history tr,
+  #fault-history td {
+    display: block;
+    width: 100%;
+  }
+
+  #fault-history thead {
+    display: none;
+  }
+
+  #fault-history tr {
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #fault-history tr:last-child {
+    border-bottom: 0;
+  }
+
+  #fault-history td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 0;
+    border: 0;
+    text-align: left;
+  }
+
+  #fault-history td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  #fault-history td.num {
+    text-align: left;
+  }
+}
+
+#fw-status:empty {
+  display: none;
+}

@@ -1,0 +1,117 @@
+# Smart Lamp Demo — local environment
+# Usage: docker compose up --build
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lamp-backend
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      - DEVICE_TOKEN=${DEVICE_TOKEN:-dev-token-local}
+      - PUBLIC_WS_BASE=${PUBLIC_WS_BASE:-ws://localhost:8080}
+      - COMMAND_TIMEOUT_S=${COMMAND_TIMEOUT_S:-2.0}
+      - REUSE_DEVICE_INSTANCE=${REUSE_DEVICE_INSTANCE:-true}
+      - INSTANCE_TTL_S=${INSTANCE_TTL_S:-3600}
+      - HEARTBEAT_TIMEOUT_S=${HEARTBEAT_TIMEOUT_S:-300}
+      - INSTANCE_MODE=${INSTANCE_MODE:-local}
+      - OTA_DIR=/data/ota
+      - SCHEDULES_DB=/data/schedules.db
+      - PROVISIONING_DB=/data/provisioning.db
+      - PROVISIONING_KEY=${PROVISIONING_KEY:-}
+      - PROVISIONING_SEED_SSID=${PROVISIONING_SEED_SSID:-Casa-Demo}
+      - PROVISIONING_NETWORKS=${PROVISIONING_NETWORKS:-Casa-Demo,Lab,Guest}
+      - PROVISIONING_ALLOW_ANY=${PROVISIONING_ALLOW_ANY:-false}
+      - MODBUS_HOST=driver
+      - MODBUS_PORT=5020
+      - MODBUS_UNIT_ID=1
+      - JWT_SECRET=${JWT_SECRET:-dev-secret}
+      - SIM_PIN=${SIM_PIN:-2025}
+      - INSECURE=${INSECURE:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./firmware/releases:/data/ota:ro
+      - backend-data:/data
+    networks:
+      - lamp-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  driver:
+    build:
+      context: .
+      dockerfile: driver/Dockerfile
+    container_name: lamp-driver
+    ports:
+      - "5020:5020"
+    environment:
+      - MODBUS_PORT=5020
+      - DRIVER_STATE_PATH=/var/lib/lamp/driver_state.bin
+      - DEVICE_ID=${DEVICE_ID:-lamp-8f2a}
+      - DEVICE_SERIAL=${DEVICE_SERIAL:-}
+      - DEVICE_IDENTITY_PATH=/var/lib/lamp/device_identity.txt
+      - PROVISION_LOT=${PROVISION_LOT:-LA}
+      - PROVISION_WEEK=${PROVISION_WEEK:-}
+      - PROVISION_ID=${PROVISION_ID:-}
+    volumes:
+      - driver-state:/var/lib/lamp
+    networks:
+      - lamp-net
+
+  firmware:
+    build:
+      context: .
+      dockerfile: firmware/Dockerfile
+    container_name: lamp-firmware
+    environment:
+      - DEVICE_TOKEN=${DEVICE_TOKEN:-dev-token-local}
+      - ORCH_WS_URL=ws://backend:8080/ws/device
+      - ORCH_HTTP_URL=http://backend:8080
+      - OTA_AES_KEY=${OTA_AES_KEY}
+      - OTA_PUBLIC_KEY_PATH=/keys/ota_public.pem
+      - BOOTLOADER_BIN=/app/bootloader
+      - FACTORY_APP=/app/firmware
+      - HW_REV=1
+      - SUPERVISOR_PORT=5022
+      - DEVICE_ID=${DEVICE_ID:-lamp-8f2a}
+      - MODBUS_HOST=driver
+      - MODBUS_PORT=5020
+      - MODBUS_WATCHDOG_TIMEOUT_S=${MODBUS_WATCHDOG_TIMEOUT_S:-5}
+      - FLASH_PATH=/var/lib/lamp/flash.bin
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - firmware-flash:/var/lib/lamp
+      - ./keys/ota_public.pem:/keys/ota_public.pem:ro
+    networks:
+      - lamp-net
+    depends_on:
+      - backend
+      - driver
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    container_name: lamp-web
+    ports:
+      - "3000:3000"
+    environment:
+      - PUBLIC_ORCHESTRATOR_URL=${PUBLIC_ORCHESTRATOR_URL:-http://localhost:8080}
+    networks:
+      - lamp-net
+    depends_on:
+      - backend
+
+networks:
+  lamp-net:
+    driver: bridge
+
+volumes:
+  firmware-flash:
+  driver-state:
+  backend-data:

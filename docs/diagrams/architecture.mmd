@@ -1,0 +1,30 @@
+flowchart LR
+  subgraph Browser["Browser"]
+    D["Dashboard<br/>user"]
+    S["Simulation Panel<br/>QA"]
+  end
+
+  subgraph Edge["Edge"]
+    P["GitHub Pages<br/>dashboard + .ota"]
+    O["Fly.io Orchestrator<br/>FastAPI + WebSocket"]
+  end
+
+  subgraph Instance["Ephemeral instance<br/>Fly Machine or compose"]
+    SUP["Supervisor<br/>PMIC + reset"]
+    BL["Bootloader<br/>A/B + rollback"]
+    FW["POSIX Firmware<br/>FreeRTOS"]
+    DRV["LED Driver<br/>Modbus TCP"]
+    FLASH[("flash.bin<br/>mmap")]
+  end
+
+  D -->|HTTPS REST| O
+  S -->|HTTPS REST + WS| O
+  D <-->|WSS| O
+  O -->|Machines API| SUP
+  O <-->|WS device| FW
+  SUP --> BL
+  BL --> FW
+  FW <-->|Modbus TCP| DRV
+  FW -.->|mmap| FLASH
+  BL -.->|mmap| FLASH
+  P -.->|.ota artifacts| O

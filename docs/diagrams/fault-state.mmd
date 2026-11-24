@@ -1,0 +1,11 @@
+stateDiagram-v2
+    [*] --> Normal
+    Normal --> Derated: overtemperature warning
+    Derated --> Normal: condition clears
+    Normal --> Latched: critical / overcurrent / open LED
+    Latched --> Off: clear faults
+    Normal --> SafeMode: corrupted configuration
+    SafeMode --> Off: clear faults
+    Normal --> Off: heartbeat lost
+    Off --> Normal: power on / heartbeat returns
+    note right of Latched: power/start blocked

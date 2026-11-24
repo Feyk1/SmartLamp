@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    participant U as Dashboard
+    participant O as Orchestrator
+    participant F as Firmware
+    participant B as Bootloader
+    participant FL as flash.bin
+
+    U->>O: POST /ota {version, mode}
+    O->>O: version preflight
+    O->>F: ota_update {version, mode}
+    F->>O: GET /ota/{version}/download
+    F->>FL: write staging
+    F->>B: execv bootloader
+    B->>FL: verify Ed25519 + AES-GCM + anti-downgrade
+
+    alt valid and newer
+        B->>FL: write inactive slot
+        B->>F: boot new slot (pending)
+        F->>FL: confirm after ~3 s
+    else rejected or downgrade
+        B->>F: boot current slot
+    end
+
+    U->>O: poll health (version + slot)

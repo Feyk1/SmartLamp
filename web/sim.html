@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Lamp · Simulation Panel</title>
+  <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="src/sim.css">
+</head>
+<body>
+  <main class="sim-app">
+    <header class="sim-header">
+      <div>
+        <h1 data-i18n="sim.title">Simulation Panel</h1>
+        <p class="subtitle">
+          <span id="sim-instance">—</span> ·
+          <a href="index.html" data-i18n="nav.userPanel">User panel</a>
+        </p>
+      </div>
+      <div class="sim-actions">
+        <div class="lang-switch" role="group" data-i18n-aria="lang.label">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="es">ES</button>
+        </div>
+        <span id="sim-conn" class="badge offline" data-i18n="sim.conn.offline">disconnected</span>
+        <button type="button" class="secondary small" data-help-open
+                data-i18n="help.button">Help</button>
+        <button id="logout" class="secondary small" data-i18n="sim.logout">Sign out</button>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="device" role="tab"
+              data-i18n="sim.tab.device">Device</button>
+      <button class="tab-btn" data-tab="firmware" role="tab"
+              data-i18n="sim.tab.firmware">Firmware</button>
+      <button class="tab-btn" data-tab="modbus" role="tab"
+              data-i18n="sim.tab.modbus">Modbus</button>
+      <button class="tab-btn" data-tab="faults" role="tab"
+              data-i18n="sim.tab.faults">Faults</button>
+      <button class="tab-btn" data-tab="logs" role="tab"
+              data-i18n="sim.tab.logs">Logs</button>
+      <button class="tab-btn" data-tab="network" role="tab"
+              data-i18n="sim.tab.network">Network</button>
+    </nav>
+
+    <section id="tab-device" class="tab-panel active">
+      <div class="panel-grid">
+        <div class="panel">
+          <h2 data-i18n="sim.state">State</h2>
+          <p id="d-state" class="mono">—</p>
+          <p id="d-health" class="mono muted">—</p>
+          <div class="row">
+            <button id="p-on" class="secondary small"
+                    data-i18n="sim.power.on">Power On</button>
+            <button id="p-off" class="secondary small"
+                    data-i18n="sim.power.off">Power Off</button>
+            <button id="p-reset" class="secondary small"
+                    data-i18n="sim.power.reset">Reset</button>
+            <button id="p-boot" class="secondary small"
+                    data-i18n="sim.power.enterBootloader">Enter bootloader</button>
+            <button id="p-factory" class="secondary small"
+                    data-i18n="sim.power.factoryReset">Factory reset</button>
+          </div>
+          <p id="p-status" class="mono muted">supervisor: —</p>
+          <p class="hint" data-i18n="sim.power.hardHint">
+            Hard power. Use these for the 3 pairing cycles; dashboard Turn off is soft.
+          </p>
+          <p class="hint" data-i18n="sim.power.factoryHint">
+            Factory reset also clears schedules, power-on policy and fault history.
+          </p>
+        </div>
+        <div class="panel">
+          <h2 data-i18n="sim.metrics">RTOS metrics</h2>
+          <div id="d-metrics" class="mono muted">—</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="sim.timeline">Timeline</h2>
+        <ul id="d-timeline" class="timeline"></ul>
+      </div>
+    </section>
+
+    <section id="tab-firmware" class="tab-panel">
+      <div class="panel">
+        <h2 data-i18n="sim.firmware.title">Available artifacts</h2>
+        <p id="fw-current" class="mono">—</p>
+        <p id="fw-mode-hint" class="hint"></p>
+        <div class="row">
+          <label class="inline">
+            <span data-i18n="sim.firmware.mode">Mode</span>
+            <select id="fw-mode">
+              <option value="legit" data-i18n="sim.mode.legit">Legit</option>
+              <option value="corrupt" data-i18n="sim.mode.corrupt">Corrupt (invalid signature)</option>
+              <option value="downgrade" data-i18n="sim.mode.downgrade">Downgrade (anti-downgrade)</option>
+            </select>
+          </label>
+        </div>
+        <div id="fw-versions" class="table-wrap">—</div>
+        <p id="fw-status" class="mono"></p>
+      </div>
+    </section>
+
+    <section id="tab-modbus" class="tab-panel">
+      <div class="callout" data-i18n="sim.modbus.bypass">
+        Bypass: writes go straight to the LED driver, without the firmware.
+      </div>
+      <div class="panel">
+        <div class="row">
+          <label class="inline">
+            <span data-i18n="sim.modbus.type">Type</span>
+            <select id="mb-kind">
+              <option value="holding">Holding</option>
+              <option value="input">Input</option>
+              <option value="coil">Coil</option>
+              <option value="discrete">Discrete</option>
+            </select>
+          </label>
+          <label class="inline">
+            <span data-i18n="sim.modbus.address">Address</span>
+            <input id="mb-addr" type="number" min="0" max="65535" value="2">
+          </label>
+          <label class="inline">
+            <span data-i18n="sim.modbus.value">Value</span>
+            <input id="mb-value" type="number" min="0" max="65535" value="120">
+          </label>
+          <label class="inline checkbox">
+            <input id="mb-apply" type="checkbox" checked>
+            <span data-i18n="sim.modbus.apply">Apply target</span>
+          </label>
+          <button id="mb-write" class="secondary"
+                  data-i18n="sim.modbus.write">Write</button>
+        </div>
+        <div class="row">
+          <button id="mb-read" class="secondary"
+                  data-i18n="sim.modbus.read">Read</button>
+          <label class="inline checkbox">
+            <input id="mb-auto" type="checkbox">
+            <span data-i18n="sim.modbus.auto">Auto-refresh 1 Hz</span>
+          </label>
+        </div>
+        <div id="mb-status" class="mono muted">—</div>
+      </div>
+      <div id="mb-tables" class="table-wrap"></div>
+    </section>
+
+    <section id="tab-faults" class="tab-panel">
+      <div class="panel">
+        <div class="row">
+          <label class="inline">
+            <span data-i18n="sim.faults.duration">Duration (s, 0 = until cleared)</span>
+            <input id="fault-duration" type="number" min="0" max="3600" value="0">
+          </label>
+          <button id="fault-clear" class="secondary"
+                  data-i18n="sim.faults.clear">Clear faults</button>
+          <button id="history-clear" class="secondary"
+                  data-i18n="sim.faults.clearHistory">Clear history</button>
+        </div>
+        <div id="fault-list" class="fault-grid"></div>
+        <p id="fault-status" class="mono muted hidden"></p>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="sim.faults.history">Fault history</h2>
+        <div id="fault-history" class="table-wrap">
+          <p class="muted" data-i18n="sim.faults.historyEmpty">No faults yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-network" class="tab-panel">
+      <div class="panel">
+        <h2 data-i18n="sim.network.title">Provisioning</h2>
+        <p id="net-state" class="mono">—</p>
+        <p id="net-detail" class="mono muted">—</p>
+        <div class="row">
+          <button id="net-start" class="secondary small"
+                  data-i18n="sim.network.start">Start pairing</button>
+          <button id="net-reset" class="secondary small"
+                  data-i18n="sim.network.reset">Forget Wi-Fi &amp; pair</button>
+          <button id="net-cancel" class="secondary small"
+                  data-i18n="sim.network.cancel">Cancel pairing</button>
+          <button id="net-refresh" class="secondary small"
+                  data-i18n="sim.network.refresh">Refresh</button>
+        </div>
+        <p class="hint" data-i18n="sim.network.hint">
+          Power off/on 3 times (1–10 s per cycle, 5–10 s recommended, max
+          2 min). During pairing, one more hard Power Off/On exits and
+          restores the previous light.
+        </p>
+        <div class="network-policy">
+          <h3 class="group-title" data-i18n="sim.network.policy">
+            Network policy
+          </h3>
+          <p class="hint" data-i18n="sim.network.policyHint">
+            Only these SSIDs connect unless Allow any is on.
+          </p>
+          <div id="net-list" class="network-chips"></div>
+          <p class="hint" data-i18n="sim.network.passwordsHint">
+            Simulated network credentials; the device stores its own password encrypted.
+          </p>
+          <div class="row network-add">
+            <input id="net-new" type="text" maxlength="64"
+                   data-i18n-placeholder="sim.network.addPlaceholder"
+                   placeholder="SSID">
+            <input id="net-pass" type="text" maxlength="64"
+                   data-i18n-placeholder="sim.network.addPassPlaceholder"
+                   placeholder="Password (optional)">
+            <button id="net-add" class="secondary small"
+                    data-i18n="sim.network.add">Add</button>
+          </div>
+          <label class="inline">
+            <input id="net-any" type="checkbox">
+            <span data-i18n="sim.network.allowAny">Allow any SSID</span>
+          </label>
+          <label class="inline">
+            <span data-i18n="sim.network.failure">Simulated failure</span>
+            <select id="net-failure">
+              <option value="none" data-i18n="sim.network.failureNone">Normal</option>
+              <option value="wrong_password" data-i18n="sim.network.failureWrong">Wrong password</option>
+              <option value="unknown_network" data-i18n="sim.network.failureUnknown">Unknown network</option>
+              <option value="timeout" data-i18n="sim.network.failureTimeout">Timeout</option>
+            </select>
+          </label>
+          <p id="net-policy-status" class="mono muted"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-logs" class="tab-panel">
+      <div class="panel">
+        <div class="row">
+          <label class="inline">
+            <span data-i18n="sim.logs.filter">Filter</span>
+            <input id="log-filter" type="search"
+                   data-i18n-placeholder="sim.logs.placeholder" placeholder="text…">
+          </label>
+          <button id="log-download" class="secondary"
+                  data-i18n="sim.logs.download">Download .log</button>
+        </div>
+        <p class="hint" data-i18n="sim.logs.hint">
+          Live device and backend events. Full stdout logs stay in
+          <code>docker compose logs</code>.
+        </p>
+        <ul id="log-list" class="logs"></ul>
+      </div>
+    </section>
+  </main>
+
+  <div id="pin" class="pin-overlay hidden">
+    <form id="pin-form" class="pin-box">
+      <h2 data-i18n="sim.pin.title">Simulation Panel access</h2>
+      <p class="muted" data-i18n="sim.pin.hint">
+        Demo PIN (2025). In production it would sit behind SSO.
+      </p>
+      <input id="pin-input" type="text" inputmode="numeric"
+             autocomplete="off" placeholder="PIN">
+      <button type="submit" class="primary"
+              data-i18n="sim.pin.enter">Enter</button>
+      <button type="button" id="pin-demo" class="secondary"
+              data-i18n="sim.pin.demo">Use demo PIN</button>
+      <p id="pin-error" class="error"></p>
+    </form>
+  </div>
+
+  <dialog id="help-dialog" class="dialog-card help-dialog" data-help-dialog>
+    <div class="dialog-head">
+      <h2 data-i18n="help.simTitle">Simulation guide</h2>
+      <button type="button" class="secondary small" data-help-close
+              data-i18n="help.close">Close</button>
+    </div>
+    <div class="dialog-scroll">
+      <h3 data-i18n="help.pairingTitle">Pairing</h3>
+      <ol>
+        <li data-i18n="help.pairing1">Panel Sim → Device: Power Off, wait 5–10 s, Power On and wait for APP_RUNNING.</li>
+        <li data-i18n="help.pairing2">Repeat the off→on cycle 3 times. The third one enters pairing; a fourth exits.</li>
+        <li data-i18n="help.pairing3">The dashboard Turn off/on is soft power and does not count. Use Add device to connect.</li>
+      </ol>
+      <h3 data-i18n="help.simPowerTitle">Soft vs hard power</h3>
+      <p data-i18n="help.simPowerText">Turn off/on in the dashboard is soft and keeps Wi-Fi. Power Off/On in Panel Sim is hard and counts for pairing.</p>
+      <h3 data-i18n="help.networkTitle">Network policy</h3>
+      <p data-i18n="help.networkText">Edit valid SSIDs and passwords, enable Allow any, or simulate wrong password, unknown network or timeout.</p>
+      <h3 data-i18n="help.credentialsTitle">Credentials</h3>
+      <p data-i18n="help.credentialsText">Casa-Demo / demo-password · Lab / lab-password · Guest / guest-password. The device stores its own password encrypted.</p>
+    </div>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="src/endpoint.js"></script>
+  <script src="src/i18n.js"></script>
+  <script src="src/help.js"></script>
+  <script src="src/sim.js"></script>
+</body>
+</html>

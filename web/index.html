@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Lamp</title>
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>Smart Lamp</h1>
+        <p class="subtitle">
+          <span data-i18n="app.stack">FreeRTOS POSIX · Modbus TCP · WebSocket ·</span>
+          <a href="sim.html" data-i18n="nav.simPanel">Simulation panel</a>
+        </p>
+      </div>
+      <div class="header-actions">
+        <div class="lang-switch" role="group" data-i18n-aria="lang.label">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="es">ES</button>
+        </div>
+        <span id="conn" class="badge offline" data-i18n="conn.deviceOffline">disconnected</span>
+        <span id="network" class="badge" data-i18n="network.checking">network…</span>
+        <button type="button" class="secondary small" data-help-open
+                data-i18n="help.button">Help</button>
+        <button id="settings-open" type="button" class="secondary small"
+                data-i18n="settings.button">Settings</button>
+        <button id="pair-device" type="button" class="secondary small"
+                data-i18n="pair.button">Add device</button>
+      </div>
+    </header>
+
+    <div id="backend-alert" class="backend-alert hidden" role="alert">
+      <span data-i18n="conn.backendAlert">Backend unavailable. The dashboard
+        cannot reach the orchestrator.</span>
+    </div>
+
+    <section id="fault-banner" class="card fault-banner hidden" role="alert">
+      <div class="fault-banner-main">
+        <span id="fault-severity" class="fault-severity" aria-hidden="true">!</span>
+        <div class="fault-copy">
+          <div class="fault-heading">
+            <strong id="fault-title">—</strong>
+            <span id="fault-latched" class="badge hidden"
+                  data-i18n="fault.latched">Latched</span>
+            <span id="fault-safe" class="badge hidden"
+                  data-i18n="fault.safeMode">Safe mode</span>
+          </div>
+          <p id="fault-detail" class="hint"></p>
+        </div>
+      </div>
+      <button id="fault-clear" type="button" class="secondary small"
+              data-i18n="fault.clear">Clear faults</button>
+    </section>
+
+    <fieldset id="dashboard-lock" class="dashboard dashboard-lock">
+      <div class="dash-col col-lamp">
+        <section class="card lamp-card">
+          <div class="lamp-visual">
+            <div id="swatch" class="swatch" data-i18n-aria="lamp.color">
+              <span id="stale-note" class="stale-note hidden"
+                    data-i18n="state.staleNote">No connection to the device</span>
+            </div>
+            <div id="lamp-meta" class="lamp-meta mono"></div>
+          </div>
+          <button id="power" class="power" data-i18n="power.on"
+                  data-i18n-title="power.softHint">Turn on</button>
+          <p id="soft-hint" class="hint" data-i18n="power.softShort">
+            Soft power · Wi-Fi stays on
+          </p>
+          <p id="network-note" class="hint hidden"></p>
+        </section>
+
+        <section class="card status">
+          <div>
+            <span data-i18n="status.state">State</span>
+            <strong id="state-text">—</strong>
+          </div>
+          <div>
+            <span data-i18n="status.health">Health</span>
+            <strong id="health">—</strong>
+          </div>
+          <div>
+            <span data-i18n="status.last">Last message</span>
+            <strong id="last">—</strong>
+          </div>
+        </section>
+
+        <section class="card firmware-card">
+          <h2 class="card-title" data-i18n="fw.title">Firmware</h2>
+          <button id="update" class="secondary"
+                  data-i18n="fw.update">Update firmware</button>
+        </section>
+
+        <section class="card power-on-card">
+          <div class="manage-head">
+            <h2 class="card-title" data-i18n="powerOn.title">Power-on</h2>
+            <span id="power-on-badge" class="badge">—</span>
+          </div>
+          <label class="inline power-on-mode">
+            <span data-i18n="powerOn.mode">When powered on</span>
+            <select id="power-on-mode">
+              <option value="last" data-i18n="powerOn.last">Keep last color</option>
+              <option value="default" data-i18n="powerOn.default">Default warm</option>
+              <option value="custom" data-i18n="powerOn.custom">Custom color</option>
+            </select>
+          </label>
+          <div class="power-on-preview">
+            <span id="power-on-swatch" class="power-on-swatch"></span>
+            <span id="power-on-detail" class="hint"></span>
+            <button id="power-on-choose" type="button" class="secondary small"
+                    data-i18n="powerOn.choose">Choose</button>
+          </div>
+          <p class="hint" data-i18n="powerOn.hint">
+            Applies to hard Power On from Panel Sim; the dashboard Turn on uses the current color.
+          </p>
+        </section>
+      </div>
+
+      <div class="dash-col col-light">
+        <section class="card control-card">
+          <h2 class="card-title" data-i18n="lamp.control">Light</h2>
+
+          <div class="mode-switch" role="tablist">
+            <button id="mode-white" class="mode-btn active" data-mode="white"
+                    role="tab" aria-selected="true"
+                    data-i18n="lamp.mode.white">White</button>
+            <button id="mode-color" class="mode-btn" data-mode="color"
+                    role="tab" aria-selected="false"
+                    data-i18n="lamp.mode.color">Color</button>
+          </div>
+
+          <div id="panel-white" class="mode-panel">
+            <label>
+              <span>
+                <span data-i18n="cct">Color temperature</span>
+                <output id="cct-out">2700 K</output>
+              </span>
+              <input id="cct" class="cct-range" type="range"
+                     min="2000" max="6500" step="50" value="2700">
+            </label>
+            <div class="range-scale">
+              <span data-i18n="cct.warm">Warm</span>
+              <span data-i18n="cct.cool">Cool</span>
+            </div>
+            <div class="circadian-row">
+              <label class="inline circadian">
+                <input id="circadian" type="checkbox">
+                <span data-i18n="circadian.label">Adaptive white</span>
+              </label>
+              <button id="circadian-config" type="button"
+                      class="secondary seq-mini"
+                      data-i18n="circadian.config">Configure</button>
+            </div>
+            <div class="circadian-row">
+              <p id="circadian-note" class="hint"
+                 data-i18n="circadian.hint">Follows the local time.</p>
+              <button id="circadian-resume" type="button"
+                      class="secondary seq-mini hidden"
+                      data-i18n="circadian.resume">Resume</button>
+            </div>
+
+            <dialog id="circadian-dialog" class="dialog-card dialog-wide">
+              <div class="dialog-head">
+                <h2 data-i18n="circadian.dialogTitle">Adaptive white</h2>
+                <button id="circadian-close" type="button"
+                        class="secondary small"
+                        data-i18n="manage.close">Close</button>
+              </div>
+              <p class="hint" data-i18n="circadian.dialogHint">
+                Set the color temperature by time of day.
+              </p>
+              <div id="circadian-points" class="circadian-points"></div>
+              <button id="circadian-add-point" type="button"
+                      class="secondary small"
+                      data-i18n="circadian.addPoint">Add point</button>
+              <div class="circadian-transition">
+                <label class="inline">
+                  <span data-i18n="circadian.transition">Transition</span>
+                  <select id="circadian-transition-mode">
+                    <option value="gradual" data-i18n="circadian.gradual">Gradual over the interval</option>
+                    <option value="quick" data-i18n="circadian.quick">Quick at each point</option>
+                  </select>
+                </label>
+                <label class="inline" id="circadian-seconds-wrap">
+                  <span data-i18n="circadian.seconds">Seconds</span>
+                  <input id="circadian-transition-seconds" type="number"
+                         min="1" max="60" value="5">
+                </label>
+              </div>
+              <label class="inline circadian">
+                <input id="circadian-brightness" type="checkbox">
+                <span data-i18n="circadian.adjustBrightness">Adjust brightness</span>
+              </label>
+              <p id="circadian-error" class="error"></p>
+              <div class="dialog-actions">
+                <button id="circadian-reset" type="button"
+                        class="secondary small"
+                        data-i18n="circadian.reset">Reset</button>
+                <button id="circadian-cancel" type="button"
+                        class="secondary small"
+                        data-i18n="circadian.cancel">Cancel</button>
+                <button id="circadian-save" type="button"
+                        class="secondary small"
+                        data-i18n="circadian.apply">Apply</button>
+              </div>
+            </dialog>
+          </div>
+
+          <div id="panel-color" class="mode-panel hidden">
+            <canvas id="wheel" width="520" height="520" tabindex="0"
+                    role="slider" data-i18n-aria="wheel.label"></canvas>
+            <p class="group-title" data-i18n="color.presets">Presets</p>
+            <div id="presets" class="presets"></div>
+          </div>
+
+          <label>
+            <span>
+              <span data-i18n="brightness">Brightness</span>
+              <output id="brightness-out">0</output>
+            </span>
+            <input id="brightness" type="range" min="0" max="1000" value="0">
+          </label>
+        </section>
+
+        <section class="card scenes-card">
+          <h2 class="card-title" data-i18n="scenes.title">Scenes</h2>
+          <div id="scenes" class="scene-grid"></div>
+        </section>
+
+        <section class="card manage-card schedules-card">
+          <div class="manage-head">
+            <h2 class="card-title" data-i18n="schedules.title">Schedules</h2>
+            <button id="schedules-manage" type="button" class="secondary small"
+                    data-i18n="manage.open">Manage</button>
+          </div>
+          <p id="schedules-summary" class="mono muted">—</p>
+        </section>
+      </div>
+
+      <div class="dash-col col-tools">
+        <section class="card effects-card">
+          <h2 class="card-title" data-i18n="effects.title">Effects</h2>
+          <div id="effects" class="chip-grid"></div>
+          <div class="effect-controls">
+            <label class="inline">
+              <span data-i18n="effect.speed">Speed</span>
+              <select id="effect-speed">
+                <option value="500">0.5×</option>
+                <option value="1000" selected>1×</option>
+                <option value="1500">1.5×</option>
+                <option value="2000">2×</option>
+              </select>
+            </label>
+            <button id="stop" class="secondary small"
+                    data-i18n="effect.stop">Stop effect</button>
+          </div>
+        </section>
+
+        <section class="card party-card">
+          <h2 class="card-title" data-i18n="party.title">Party</h2>
+          <div class="party-controls">
+            <select id="party-source">
+              <option value="mic" data-i18n="party.mic">Microphone (browser)</option>
+              <option value="auto" data-i18n="party.auto">Simulated beat</option>
+            </select>
+            <button id="party-toggle" class="secondary small"
+                    data-i18n="party.start">Start party</button>
+          </div>
+          <div class="party-meter" aria-hidden="true">
+            <div id="party-level"></div>
+          </div>
+          <p id="party-status" class="mono muted" data-i18n="party.hint">
+            Uses this browser's microphone; audio never leaves the browser.
+          </p>
+        </section>
+
+        <section class="card manage-card sequences-card">
+          <div class="manage-head">
+            <h2 class="card-title" data-i18n="sequences.title">Sequences</h2>
+            <button id="sequences-manage" type="button" class="secondary small"
+                    data-i18n="manage.open">Manage</button>
+          </div>
+          <p id="sequences-summary" class="mono muted">—</p>
+        </section>
+      </div>
+    </fieldset>
+  </main>
+
+  <dialog id="schedules-dialog" class="dialog-card dialog-wide">
+    <div class="dialog-head">
+      <h2 data-i18n="schedules.title">Schedules</h2>
+      <button id="schedules-close" type="button" class="secondary small"
+              data-i18n="manage.close">Close</button>
+    </div>
+    <div class="dialog-scroll">
+      <p class="hint" data-i18n="schedules.dialogHint">
+        Add, edit or disable schedules. They run while the backend is alive.
+      </p>
+          <div class="schedule-form">
+            <label class="inline">
+              <span data-i18n="schedules.time">Time</span>
+              <input id="schedule-time" type="time" value="07:00">
+            </label>
+            <label class="inline">
+              <span data-i18n="schedules.repeat">Repeat</span>
+              <select id="schedule-repeat">
+                <option value="once" data-i18n="schedules.once">Once</option>
+                <option value="daily" data-i18n="schedules.daily">Every day</option>
+                <option value="weekdays" data-i18n="schedules.weekdays">Weekdays</option>
+                <option value="weekends" data-i18n="schedules.weekends">Weekends</option>
+                <option value="custom" data-i18n="schedules.custom">Custom days</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="schedule-days" class="schedule-days hidden">
+            <label><input type="checkbox" value="0"><span data-i18n="day.mon">Mon</span></label>
+            <label><input type="checkbox" value="1"><span data-i18n="day.tue">Tue</span></label>
+            <label><input type="checkbox" value="2"><span data-i18n="day.wed">Wed</span></label>
+            <label><input type="checkbox" value="3"><span data-i18n="day.thu">Thu</span></label>
+            <label><input type="checkbox" value="4"><span data-i18n="day.fri">Fri</span></label>
+            <label><input type="checkbox" value="5"><span data-i18n="day.sat">Sat</span></label>
+            <label><input type="checkbox" value="6"><span data-i18n="day.sun">Sun</span></label>
+          </div>
+
+          <p class="group-title" data-i18n="schedules.action">Action</p>
+          <p class="hint" data-i18n="schedules.builderHint">
+            Choose what the schedule should do.
+          </p>
+          <div class="schedule-action-types" role="group"
+               data-i18n-aria="schedules.action">
+            <button type="button" class="schedule-type"
+                    data-schedule-action="current"
+                    data-i18n="schedules.useCurrent">Current light</button>
+            <button type="button" class="schedule-type"
+                    data-schedule-action="color"
+                    data-i18n="schedules.pickColor">Color / white</button>
+            <button type="button" class="schedule-type"
+                    data-schedule-action="scene"
+                    data-i18n="schedules.scene">Scene</button>
+            <button type="button" class="schedule-type"
+                    data-schedule-action="effect"
+                    data-i18n="schedules.effect">Effect</button>
+            <button type="button" class="schedule-type"
+                    data-schedule-action="off"
+                    data-i18n="schedules.turnOff">Off</button>
+            <button type="button" class="schedule-type"
+                    data-schedule-action="sunrise"
+                    data-i18n="schedules.sunrise">Sunrise</button>
+          </div>
+
+          <div class="schedule-action-panel hidden" data-schedule-panel="current">
+            <p class="hint" data-i18n="schedules.currentHint">
+              Uses the light exactly as it is right now.
+            </p>
+          </div>
+
+          <div class="schedule-action-panel hidden" data-schedule-panel="color">
+            <button id="schedule-color-button" type="button"
+                    class="secondary small schedule-color-button">
+              <span id="schedule-color-swatch" class="schedule-color-swatch"></span>
+              <span data-i18n="schedules.chooseColor">Choose color / white</span>
+            </button>
+          </div>
+
+          <div class="schedule-action-panel hidden" data-schedule-panel="scene">
+            <label class="inline seq-setting">
+              <span data-i18n="schedules.scene">Scene</span>
+              <select id="schedule-scene">
+                <option value="reading" data-i18n="scene.reading">Reading</option>
+                <option value="relax" data-i18n="scene.relax">Relax</option>
+                <option value="focus" data-i18n="scene.focus">Focus</option>
+                <option value="night" data-i18n="scene.night">Night</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="schedule-action-panel hidden" data-schedule-panel="effect">
+            <div class="schedule-builder-row">
+              <label class="inline seq-setting">
+                <span data-i18n="schedules.effect">Effect</span>
+                <select id="schedule-effect">
+                  <option value="breathing" data-i18n="effect.breathing">Breathing</option>
+                  <option value="rainbow" data-i18n="effect.rainbow">Rainbow</option>
+                  <option value="candle" data-i18n="effect.candle">Candle</option>
+                  <option value="strobe" data-i18n="effect.strobe">Strobe</option>
+                  <option value="police" data-i18n="effect.police">Police</option>
+                  <option value="sunrise" data-i18n="effect.sunrise">Sunrise</option>
+                </select>
+              </label>
+              <label class="inline seq-setting">
+                <span data-i18n="schedules.speed">Speed</span>
+                <select id="schedule-effect-speed">
+                  <option value="500">0.5×</option>
+                  <option value="1000" selected>1×</option>
+                  <option value="1500">1.5×</option>
+                  <option value="2000">2×</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="schedule-action-panel hidden" data-schedule-panel="off">
+            <p class="hint" data-i18n="schedules.offHint">
+              Turns the lamp off at the selected time.
+            </p>
+          </div>
+
+          <div class="schedule-action-panel hidden" data-schedule-panel="sunrise">
+            <label class="inline seq-setting">
+              <span data-i18n="schedules.sunriseDuration">Duration</span>
+              <select id="schedule-sunrise-duration">
+                <option value="15">15 min</option>
+                <option value="30" selected>30 min</option>
+                <option value="45">45 min</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="schedule-draft">
+            <span id="schedule-preview-dot" class="schedule-preview-dot"></span>
+            <span id="schedule-preview-text" class="schedule-meta"
+                  data-i18n="schedules.chooseAction">
+              Choose an action type above.
+            </span>
+          </div>
+
+          <div class="schedule-actions">
+            <button id="schedule-add" class="secondary small"
+                    data-i18n="schedules.add">Add schedule</button>
+            <button id="schedules-reset" class="secondary small"
+                    data-i18n="schedules.reset">Reset schedules</button>
+            <button id="schedule-cancel" class="secondary small hidden"
+                    data-i18n="schedules.cancel">Cancel</button>
+          </div>
+          <p id="schedule-status" class="mono muted"
+             data-i18n="schedules.hint">Runs while the backend is alive.</p>
+          <ul id="schedule-list" class="schedule-list"></ul>
+          <p id="schedule-zone" class="hint"></p>
+    </div>
+  </dialog>
+
+  <dialog id="sequences-dialog" class="dialog-card dialog-wide">
+    <div class="dialog-head">
+      <h2 data-i18n="sequences.title">Sequences</h2>
+      <button id="sequences-close" type="button" class="secondary small"
+              data-i18n="manage.close">Close</button>
+    </div>
+    <div class="dialog-scroll">
+      <p class="hint" data-i18n="sequences.dialogHint">
+        Add colors, drag to reorder and start the sequence.
+      </p>
+          <div id="sequence-steps" class="sequence-steps"></div>
+          <div class="sequence-actions">
+            <button id="seq-add" class="secondary small"
+                    data-i18n="sequences.add">Add color</button>
+            <label class="inline seq-setting">
+              <span data-i18n="sequences.fade">Fade (s)</span>
+              <input id="seq-fade" type="number" min="0" max="3" step="0.1" value="0.8">
+            </label>
+            <label class="inline seq-setting">
+              <span data-i18n="sequences.speed">Speed</span>
+              <select id="seq-speed">
+                <option value="500">0.5×</option>
+                <option value="1000" selected>1×</option>
+                <option value="1500">1.5×</option>
+                <option value="2000">2×</option>
+              </select>
+            </label>
+            <button id="seq-start" class="secondary small"
+                    data-i18n="sequences.start">Start</button>
+            <button id="seq-stop" class="secondary small"
+                    data-i18n="sequences.stop">Stop</button>
+            <button id="seq-reset" class="secondary small"
+                    data-i18n="sequences.reset">Reset</button>
+          </div>
+          <p id="seq-status" class="mono muted">—</p>
+    </div>
+  </dialog>
+
+  <dialog id="pair-dialog" class="dialog-card">
+    <h2 data-i18n="pair.title">Add device</h2>
+    <p id="pair-hint" class="hint" data-i18n="pair.hint">
+      Put the lamp in pairing mode to start.
+    </p>
+    <div id="pair-scan" class="pair-scan hidden">
+      <div id="pair-device-card" class="pair-device"></div>
+    </div>
+    <div id="pair-wifi" class="pair-wifi hidden">
+      <label class="inline">
+        <span data-i18n="pair.ssid">Network name</span>
+        <input id="pair-ssid" type="text" autocomplete="off"
+               list="pair-networks" placeholder="Home Wi-Fi">
+        <datalist id="pair-networks"></datalist>
+      </label>
+      <p id="pair-networks-note" class="hint"></p>
+      <label class="inline">
+        <span data-i18n="pair.password">Password</span>
+        <input id="pair-password" type="password" autocomplete="new-password">
+      </label>
+      <p class="hint" data-i18n="pair.simulation">
+        Simulated BLE/Wi-Fi. The password is stored encrypted and never shown.
+      </p>
+    </div>
+    <p id="pair-status" class="mono muted"></p>
+    <div class="dialog-actions">
+      <button id="pair-connect" type="button" class="secondary small hidden"
+              data-i18n="pair.connect">Connect</button>
+      <button id="pair-close" type="button" class="secondary small"
+              data-i18n="pair.close">Close</button>
+    </div>
+  </dialog>
+
+  <dialog id="help-dialog" class="dialog-card help-dialog" data-help-dialog>
+    <div class="dialog-head">
+      <h2 data-i18n="help.title">Quick guide</h2>
+      <button type="button" class="secondary small" data-help-close
+              data-i18n="help.close">Close</button>
+    </div>
+    <div class="dialog-scroll">
+      <h3 data-i18n="help.pairingTitle">Pairing</h3>
+      <ol>
+        <li data-i18n="help.pairing1">Panel Sim → Device: Power Off, wait 5–10 s, Power On and wait for APP_RUNNING.</li>
+        <li data-i18n="help.pairing2">Repeat the off→on cycle 3 times. The third one enters pairing; a fourth exits.</li>
+        <li data-i18n="help.pairing3">The dashboard Turn off/on is soft power and does not count. Use Add device to connect.</li>
+      </ol>
+      <h3 data-i18n="help.schedulesTitle">Schedules</h3>
+      <p data-i18n="help.schedulesText">Open Manage to add, edit or disable schedules. Sunrise ramps over 15–45 min and runs in the backend.</p>
+      <h3 data-i18n="help.sequencesTitle">Sequences</h3>
+      <p data-i18n="help.sequencesText">Open Manage to add colors, set durations, drag to reorder and Start. The arrows remain for keyboard and mobile.</p>
+      <h3 data-i18n="help.credentialsTitle">Credentials</h3>
+      <p data-i18n="help.credentialsText">Casa-Demo / demo-password · Lab / lab-password · Guest / guest-password. The device stores its own password encrypted.</p>
+    </div>
+  </dialog>
+
+  <dialog id="settings-dialog" class="dialog-card">
+    <div class="dialog-head">
+      <h2 data-i18n="settings.title">Settings</h2>
+      <button id="settings-close" type="button" class="secondary small"
+              data-i18n="settings.close">Close</button>
+    </div>
+    <div class="dialog-scroll">
+      <p class="hint" data-i18n="settings.hint">
+        Maintenance actions for this dashboard and its schedules.
+      </p>
+      <h3 data-i18n="settings.deviceTitle">Device</h3>
+      <p id="settings-device" class="mono muted">—</p>
+      <h3 data-i18n="settings.resetTitle">Reset dashboard</h3>
+      <p data-i18n="settings.resetText">
+        Clears sequences, adaptive white, party source, schedules and the
+        power-on policy. It does not factory-reset the lamp.
+      </p>
+      <button id="settings-reset" type="button" class="secondary small"
+              data-i18n="settings.reset">Reset dashboard</button>
+      <h3 data-i18n="settings.historyTitle">Fault history</h3>
+      <p data-i18n="settings.historyText">
+        Faults stay in the instance history until you clear them.
+      </p>
+      <button id="settings-clear-history" type="button"
+              class="secondary small"
+              data-i18n="settings.historyClear">Clear fault history</button>
+      <p id="settings-status" class="mono muted"></p>
+    </div>
+  </dialog>
+
+  <dialog id="color-picker-dialog" class="dialog-card color-picker-dialog">
+    <div class="dialog-head">
+      <h2 id="picker-title" data-i18n="picker.title">Color</h2>
+      <button id="picker-close" type="button" class="secondary small"
+              data-i18n="picker.cancel">Cancel</button>
+    </div>
+    <div class="mode-switch">
+      <button id="picker-mode-color" type="button" class="picker-mode-btn active"
+              data-mode="color" data-i18n="lamp.mode.color">Color</button>
+      <button id="picker-mode-white" type="button" class="picker-mode-btn"
+              data-mode="white" data-i18n="lamp.mode.white">White</button>
+    </div>
+    <div class="picker-preview">
+      <span id="picker-preview-swatch" class="picker-preview-swatch"></span>
+      <span class="picker-preview-info">
+        <strong data-i18n="picker.preview">Preview</strong>
+        <span id="picker-preview-detail" class="mono muted"></span>
+      </span>
+    </div>
+    <div id="picker-color-panel" class="mode-panel">
+      <canvas id="picker-wheel" width="300" height="300" tabindex="0"
+              role="slider" data-i18n-aria="wheel.label"></canvas>
+      <p class="group-title" data-i18n="color.presets">Presets</p>
+      <div id="picker-presets" class="presets"></div>
+    </div>
+    <div id="picker-white-panel" class="mode-panel hidden">
+      <label>
+        <span>
+          <span data-i18n="cct">Color temperature</span>
+          <output id="picker-cct-out">4000 K</output>
+        </span>
+        <input id="picker-cct" class="cct-range" type="range"
+               min="2000" max="6500" step="50" value="4000">
+      </label>
+      <div class="range-scale">
+        <span data-i18n="cct.warm">Warm</span>
+        <span data-i18n="cct.cool">Cool</span>
+      </div>
+    </div>
+    <label>
+      <span>
+        <span data-i18n="brightness">Brightness</span>
+        <output id="picker-brightness-out">800</output>
+      </span>
+      <input id="picker-brightness" type="range" min="0" max="1000"
+             value="800">
+    </label>
+    <div class="dialog-actions">
+      <button id="picker-apply" type="button" class="primary"
+              data-i18n="picker.apply">Apply</button>
+      <button id="picker-cancel" type="button" class="secondary small"
+              data-i18n="picker.cancel">Cancel</button>
+    </div>
+  </dialog>
+
+  <button id="assistant-toggle" class="assistant-toggle" type="button"
+          aria-controls="assistant-panel" aria-expanded="false"
+          aria-label="Ask">
+    <span class="assistant-spark" aria-hidden="true">✦</span>
+    <span id="assistant-toggle-label">Ask</span>
+  </button>
+
+  <section id="assistant-panel" class="assistant-panel hidden"
+           role="dialog" aria-modal="false" aria-labelledby="assistant-title">
+    <header class="assistant-head">
+      <div>
+        <p class="assistant-kicker">SMART LAMP</p>
+        <h2 id="assistant-title">Lamp assistant</h2>
+      </div>
+      <button id="assistant-close" type="button" class="secondary small">Close</button>
+    </header>
+    <div id="assistant-messages" class="assistant-messages"
+         role="log" aria-live="polite"></div>
+    <div id="assistant-suggestions" class="assistant-suggestions"></div>
+    <form id="assistant-form" class="assistant-form">
+      <input id="assistant-input" type="text" autocomplete="off"
+             aria-label="Ask about the lamp" placeholder="Ask about the lamp…">
+      <button id="assistant-send" type="submit" class="primary small">Send</button>
+    </form>
+    <p id="assistant-disclaimer" class="assistant-disclaimer"></p>
+  </section>
+
+  <script src="config.js"></script>
+  <script src="src/endpoint.js"></script>
+  <script src="src/i18n.js"></script>
+  <script src="src/help.js"></script>
+  <script src="src/assistant-knowledge.js"></script>
+  <script src="src/app.js"></script>
+  <script src="src/assistant.js"></script>
+</body>
+</html>

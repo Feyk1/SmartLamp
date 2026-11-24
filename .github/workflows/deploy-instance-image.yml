@@ -1,0 +1,37 @@
+name: Deploy instance image
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-instance-image
+  cancel-in-progress: false
+
+env:
+  IMAGE: registry.fly.io/lamp-instance-base
+
+jobs:
+  image:
+    name: Imagen de instancia
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Autenticar el registro de Fly
+        run: flyctl auth docker
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Construir y publicar
+        run: |
+          docker build -f infra/instance/Dockerfile \
+            -t "$IMAGE:${{ github.sha }}" \
+            -t "$IMAGE:latest" .
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:latest"
+      - name: Resumen
+        run: echo "Publicada $IMAGE:latest (${{ github.sha }})" >> "$GITHUB_STEP_SUMMARY"
